@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/doctors")
+@RequestMapping("/api/doctors")  // ✅ thêm /api để đồng bộ với gateway
+@CrossOrigin(origins = "*")
 public class DoctorController {
 
     private final DoctorRepository repository;
@@ -24,5 +25,10 @@ public class DoctorController {
     @PostMapping
     public Doctor addDoctor(@RequestBody Doctor doctor) {
         return repository.save(doctor);
+    }
+
+    @GetMapping("/test")
+    public String test() {
+        return "✅ Doctor service is working!";
     }
 }

@@ -6,14 +6,14 @@ spring:
     name: user-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/medbook_userdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://localhost:3306/medbook_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
-    password: 123456   # ⚠️ sửa lại nếu có mật khẩu, nếu không thì để trống ""
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update   # tự đồng bộ bảng nếu có thay đổi entity
     show-sql: true
     properties:
       hibernate.format_sql: true
