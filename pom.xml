@@ -14,7 +14,7 @@
     <name>MedBook Microservice Parent</name>
     <description>Parent POM for MedBook Microservices</description>
 
-    <!-- 🧩 Liệt kê tất cả microservice con -->
+    <!-- 🧩 Liệt kê tất cả các module con -->
     <modules>
         <module>discovery-service</module>
         <module>gateway-service</module>
@@ -30,9 +30,9 @@
 
     <!-- ⚙️ Cấu hình version chung -->
     <properties>
-        <java.version>21</java.version>
-        <spring.boot.version>3.5.6</spring.boot.version>
-        <spring.cloud.version>2025.0.0</spring.cloud.version>
+        <java.version>17</java.version>
+        <spring.boot.version>3.3.5</spring.boot.version>
+        <spring.cloud.version>2023.0.3</spring.cloud.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -61,17 +61,15 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- 📚 Dependencies dùng chung cho toàn dự án -->
+    <!-- 📚 Dependencies dùng chung -->
     <dependencies>
-        <!-- Lombok (nếu các module đều cần) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
+            <version>1.18.40</version>
             <optional>true</optional>
         </dependency>
 
-        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -79,11 +77,11 @@
         </dependency>
     </dependencies>
 
-    <!-- 🧰 Plugin dùng chung -->
+    <!-- 🧰 Plugin -->
     <build>
         <pluginManagement>
             <plugins>
-                <!-- ⚙️ Compiler plugin -->
+                <!-- ⚙️ Compiler -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -102,7 +100,7 @@
                     <version>${spring.boot.version}</version>
                 </plugin>
 
-                <!-- 🚫 Bỏ qua test khi build (tùy chọn) -->
+                <!-- 🚫 Bỏ qua test khi build -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
