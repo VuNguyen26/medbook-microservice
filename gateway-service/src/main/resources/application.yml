@@ -69,8 +69,6 @@ spring:
           uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
-          filters:
-            - StripPrefix=1
 
       # 🔍 Cho phép tự động định tuyến (nếu bạn muốn bỏ config thủ công)
       discovery:

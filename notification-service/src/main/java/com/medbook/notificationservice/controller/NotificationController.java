@@ -16,18 +16,33 @@ public class NotificationController {
         this.service = service;
     }
 
+    // 🟢 Lấy toàn bộ thông báo (Admin hoặc test)
+    @GetMapping
+    public List<Notification> getAll() {
+        return service.getAllNotifications();
+    }
+
+    // 🟢 Lấy danh sách thông báo của user cụ thể
     @GetMapping("/user/{userId}")
-    public List<Notification> getByUser(@PathVariable Integer userId) {
+    public List<Notification> getByUser(@PathVariable Long userId) {
         return service.getNotificationsByUser(userId);
     }
 
+    // 🟢 Tạo thông báo mới
     @PostMapping
     public Notification create(@RequestBody Notification notification) {
         return service.createNotification(notification);
     }
 
+    // 🟢 Đánh dấu thông báo là đã đọc
     @PutMapping("/{id}/read")
-    public Notification markRead(@PathVariable Long id) {
+    public Notification markAsRead(@PathVariable Long id) {
         return service.markAsRead(id);
+    }
+
+    // 🔴 Xóa thông báo (nếu cần)
+    @DeleteMapping("/{id}")
+    public void deleteNotification(@PathVariable Long id) {
+        service.deleteNotification(id);
     }
 }
