@@ -13,12 +13,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update       # dev: update | prod: validate
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false  # ✅ để trả JSON ngày/giờ đẹp, không bị timestamp
 
 eureka:
   client:
@@ -26,3 +30,9 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+# 🧾 Logging
+logging:
+  level:
+    org.springframework.web: INFO
+    com.medbook.patientservice: DEBUG
