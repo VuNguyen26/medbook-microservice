@@ -10,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,5 +19,7 @@ public class User {
     private String email;
     private String phone;
     private String password;
-    private String role;
+
+    @Enumerated(EnumType.STRING)
+    private Role role; // ✅ dùng Enum thay vì String
 }

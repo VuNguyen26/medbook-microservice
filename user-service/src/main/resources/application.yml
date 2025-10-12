@@ -13,11 +13,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # tự đồng bộ bảng nếu có thay đổi entity
+      ddl-auto: update   # Tự đồng bộ bảng nếu có thay đổi entity
     show-sql: true
     properties:
-      hibernate.format_sql: true
-      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
 eureka:
   client:
@@ -35,7 +36,13 @@ management:
     health:
       show-details: always
 
+# 🪪 Cấu hình JWT (tùy chọn để sau này dùng chung toàn hệ thống)
+jwt:
+  secret: thisIsASecretKeyForJWTMedBookProject12345
+  expiration: 86400000   # 1 ngày
+
 logging:
   level:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
+    com.medbook.user: DEBUG
