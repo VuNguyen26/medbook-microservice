@@ -1,10 +1,11 @@
-package com.medbook.prescriptionservice.controller;
+package com.medbook.prescriptionsservice.controller;
 
-import com.medbook.prescriptionservice.dto.PrescriptionRequest;
-import com.medbook.prescriptionservice.dto.PrescriptionResponse;
-import com.medbook.prescriptionservice.service.PrescriptionService;
+import com.medbook.prescriptionsservice.dto.PrescriptionRequest;
+import com.medbook.prescriptionsservice.dto.PrescriptionResponse;
+import com.medbook.prescriptionsservice.service.PrescriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,43 +22,52 @@ public class PrescriptionController {
     // 🩺 Tạo mới toa thuốc
     @PostMapping
     public ResponseEntity<PrescriptionResponse> create(@Valid @RequestBody PrescriptionRequest req) {
-        return ResponseEntity.ok(service.create(req));
+        PrescriptionResponse created = service.create(req);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // 🔍 Lấy toa thuốc theo ID
     @GetMapping("/{id}")
-    public PrescriptionResponse get(@PathVariable Long id) {
-        return service.get(id);
+    public ResponseEntity<PrescriptionResponse> get(@PathVariable Long id) {
+        return ResponseEntity.ok(service.get(id));
     }
 
-    // 🔎 Lọc toa thuốc theo medicalRecordId / patientId / doctorId
+    // 🔎 Lọc toa thuốc theo medicalRecordId / patientId / doctorId / hoặc trả tất cả
     @GetMapping
-    public List<PrescriptionResponse> findPrescriptions(
+    public ResponseEntity<List<PrescriptionResponse>> findPrescriptions(
             @RequestParam(required = false) Long medicalRecordId,
             @RequestParam(required = false) Long patientId,
             @RequestParam(required = false) Long doctorId) {
 
+        List<PrescriptionResponse> result;
+
         if (medicalRecordId != null) {
-            return service.byMedicalRecord(medicalRecordId);
+            result = service.byMedicalRecord(medicalRecordId);
+        } else if (patientId != null) {
+            result = service.byPatient(patientId);
+        } else if (doctorId != null) {
+            result = service.byDoctor(doctorId);
+        } else {
+            // Nếu không có filter -> trả toàn bộ danh sách
+            result = service.getAll();
         }
-        if (patientId != null) {
-            return service.byPatient(patientId);
-        }
-        if (doctorId != null) {
-            return service.byDoctor(doctorId);
-        }
-        return List.of();
+
+        return ResponseEntity.ok(result);
     }
 
     // ⚙️ Cập nhật trạng thái toa thuốc (ACTIVE / CANCELLED / ...)
     @PatchMapping("/{id}/status")
-    public PrescriptionResponse updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        return service.updateStatus(id, body.getOrDefault("status", "ACTIVE"));
+    public ResponseEntity<PrescriptionResponse> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        PrescriptionResponse updated = service.updateStatus(id, body.getOrDefault("status", "ACTIVE"));
+        return ResponseEntity.ok(updated);
     }
 
     // ❌ Xóa toa thuốc
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
+        return ResponseEntity.noContent().build(); // HTTP 204 No Content
     }
 }

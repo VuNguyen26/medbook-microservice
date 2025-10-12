@@ -1,12 +1,14 @@
-package com.medbook.prescriptionservice.service;
+package com.medbook.prescriptionsservice.service;
 
-import com.medbook.prescriptionservice.dto.PrescriptionRequest;
-import com.medbook.prescriptionservice.dto.PrescriptionResponse;
-import com.medbook.prescriptionservice.model.Prescription;
-import com.medbook.prescriptionservice.repository.PrescriptionRepository;
+import com.medbook.prescriptionsservice.dto.PrescriptionRequest;
+import com.medbook.prescriptionsservice.dto.PrescriptionResponse;
+import com.medbook.prescriptionsservice.model.Prescription;
+import com.medbook.prescriptionsservice.repository.PrescriptionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -27,6 +29,7 @@ public class PrescriptionService {
                 .notes(req.notes())
                 .issuedAt(req.issuedAt() == null ? java.time.LocalDateTime.now() : req.issuedAt())
                 .build();
+
         p = repo.save(p);
         return toDto(p);
     }
@@ -35,26 +38,37 @@ public class PrescriptionService {
     public PrescriptionResponse get(Long id) {
         return repo.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new IllegalArgumentException("Prescription not found: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found: " + id));
     }
 
     // 📋 Lấy danh sách toa thuốc theo ID hồ sơ bệnh án
     public List<PrescriptionResponse> byMedicalRecord(Long mrId) {
-        return repo.findByMedicalRecordId(mrId).stream()
+        return repo.findByMedicalRecordId(mrId)
+                .stream()
                 .map(this::toDto)
                 .toList();
     }
 
     // 🧍‍♀️ Lấy danh sách toa thuốc theo bệnh nhân
     public List<PrescriptionResponse> byPatient(Long patientId) {
-        return repo.findByPatientId(patientId).stream()
+        return repo.findByPatientId(patientId)
+                .stream()
                 .map(this::toDto)
                 .toList();
     }
 
     // 👨‍⚕️ Lấy danh sách toa thuốc theo bác sĩ
     public List<PrescriptionResponse> byDoctor(Long doctorId) {
-        return repo.findByDoctorId(doctorId).stream()
+        return repo.findByDoctorId(doctorId)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    // 📚 Lấy tất cả toa thuốc
+    public List<PrescriptionResponse> getAll() {
+        return repo.findAll()
+                .stream()
                 .map(this::toDto)
                 .toList();
     }
@@ -63,13 +77,17 @@ public class PrescriptionService {
     @Transactional
     public PrescriptionResponse updateStatus(Long id, String status) {
         Prescription p = repo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Prescription not found: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found: " + id));
         p.setStatus(status);
         return toDto(repo.save(p));
     }
 
     // ❌ Xóa toa thuốc
+    @Transactional
     public void delete(Long id) {
+        if (!repo.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found: " + id);
+        }
         repo.deleteById(id);
     }
 
