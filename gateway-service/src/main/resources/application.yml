@@ -7,37 +7,78 @@ spring:
 
   cloud:
     gateway:
-      # (A) Khai báo route thủ công theo từng service
       routes:
+        # 🧩 USER SERVICE
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
             - Path=/api/users/**
           filters:
-            - StripPrefix=1   # /api/users/** -> /**
+            - StripPrefix=0   # Giữ nguyên /api/users/**
 
+        # 🧩 DOCTOR SERVICE
         - id: doctor-service
           uri: lb://DOCTOR-SERVICE
           predicates:
             - Path=/api/doctors/**
           filters:
-            - StripPrefix=1
+            - StripPrefix=0   # Giữ nguyên /api/doctors/**
 
+        # 🧩 APPOINTMENT SERVICE
         - id: appointment-service
           uri: lb://APPOINTMENT-SERVICE
           predicates:
             - Path=/api/appointments/**
           filters:
-            - StripPrefix=1
+            - StripPrefix=0   # Giữ nguyên /api/appointments/**
 
-      # (B) Bật định tuyến động theo tên service (tùy chọn)
+        # 🧩 PATIENT SERVICE
+        - id: patient-service
+          uri: lb://PATIENT-SERVICE
+          predicates:
+            - Path=/api/patients/**
+          filters:
+            - StripPrefix=0
+
+        # 🧩 PAYMENT SERVICE
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - StripPrefix=0
+
+        # 🧩 MEDICAL RECORD SERVICE
+        - id: medicalrecord-service
+          uri: lb://MEDICALRECORD-SERVICE
+          predicates:
+            - Path=/api/medical-records/**
+          filters:
+            - StripPrefix=0
+
+        # 🧩 PRESCRIPTION SERVICE
+        - id: prescription-service
+          uri: lb://PRESCRIPTION-SERVICE
+          predicates:
+            - Path=/api/prescriptions/**
+          filters:
+            - StripPrefix=0
+
+        # 🧩 NOTIFICATION SERVICE
+        - id: notification-service
+          uri: lb://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=0
+
+      # Cho phép tự động định tuyến (optional)
       discovery:
         locator:
           enabled: true
-          lower-case-service-id: true  # /<service-id>/** -> lb://SERVICE-ID
+          lower-case-service-id: true
 
-      # CORS dev (tuỳ chọn)
-      # Cho phép FE gọi API qua Gateway trong quá trình phát triển
+      # 🧠 Cho phép FE (React, Angular, v.v.) truy cập CORS qua Gateway
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -45,6 +86,7 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
 
+# 🛰️ Kết nối với Eureka
 eureka:
   client:
     register-with-eureka: true
@@ -52,7 +94,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# Actuator để xem routes/health
+# 🩺 Actuator để kiểm tra health & route
 management:
   endpoints:
     web:
@@ -62,7 +104,7 @@ management:
     health:
       show-details: always
 
-# Debug log (hữu ích khi test route)
+# 🧾 Logging
 logging:
   level:
     org.springframework.cloud.gateway: INFO

@@ -14,7 +14,7 @@
     <name>MedBook Microservice Parent</name>
     <description>Parent POM for MedBook Microservices</description>
 
-    <!-- 🧩 Liệt kê tất cả các microservice con -->
+    <!-- 🧩 Liệt kê tất cả microservice con -->
     <modules>
         <module>discovery-service</module>
         <module>gateway-service</module>
@@ -25,23 +25,22 @@
         <module>payment-service</module>
         <module>medicalrecord-service</module>
         <module>prescription-service</module>
-        <module>notification-service</module> <!-- ✅ Đã thêm -->
+        <module>notification-service</module>
     </modules>
 
-    <!-- ⚙️ Cấu hình version dùng chung -->
+    <!-- ⚙️ Cấu hình version chung -->
     <properties>
         <java.version>21</java.version>
-        <spring.boot.version>3.3.5</spring.boot.version> <!-- ✅ Đổi từ 3.5.6 -->
-        <spring.cloud.version>2023.0.3</spring.cloud.version>
+        <spring.boot.version>3.5.6</spring.boot.version>
+        <spring.cloud.version>2025.0.0</spring.cloud.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
 
-    <!-- 📦 Quản lý version dùng chung cho toàn hệ thống -->
+    <!-- 📦 BOM quản lý version -->
     <dependencyManagement>
         <dependencies>
-
             <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -59,13 +58,20 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
-    <!-- 📚 Dependencies dùng chung -->
+    <!-- 📚 Dependencies dùng chung cho toàn dự án -->
     <dependencies>
-        <!-- ✅ Dành cho test (nếu sau này cần) -->
+        <!-- Lombok (nếu các module đều cần) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -73,11 +79,10 @@
         </dependency>
     </dependencies>
 
-    <!-- 🧰 Plugin chung -->
+    <!-- 🧰 Plugin dùng chung -->
     <build>
         <pluginManagement>
             <plugins>
-
                 <!-- ⚙️ Compiler plugin -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -86,6 +91,7 @@
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
+                        <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
                 </plugin>
 
@@ -96,7 +102,7 @@
                     <version>${spring.boot.version}</version>
                 </plugin>
 
-                <!-- 🚫 Bỏ qua test khi build -->
+                <!-- 🚫 Bỏ qua test khi build (tùy chọn) -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -105,7 +111,6 @@
                         <skipTests>true</skipTests>
                     </configuration>
                 </plugin>
-
             </plugins>
         </pluginManagement>
     </build>
