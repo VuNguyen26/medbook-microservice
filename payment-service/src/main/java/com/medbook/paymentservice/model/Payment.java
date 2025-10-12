@@ -2,7 +2,6 @@ package com.medbook.paymentservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Payment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,10 +19,11 @@ public class Payment {
     private Long patientId;
     private Double amount;
 
-    @Enumerated(EnumType.STRING)
+    // Ánh xạ với converter để xử lý chữ thường ↔ Enum
+    @Convert(converter = PaymentMethodConverter.class)
     private PaymentMethod method;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = PaymentStatusConverter.class)
     private PaymentStatus status;
 
     private LocalDateTime transactionTime = LocalDateTime.now();
