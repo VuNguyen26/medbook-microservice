@@ -8,18 +8,31 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/medbook_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
-    password: 123456      # 🔒 thay bằng mật khẩu thật của bạn
+    password: 123456         # ⚠️ thay bằng mật khẩu thật của bạn
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update       # dev: update | prod: validate
     show-sql: true
     properties:
       hibernate:
+        format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 eureka:
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+# Bật log chi tiết cho service
+logging:
+  level:
+    org.springframework.web: INFO
+    com.medbook.appointmentservice: DEBUG

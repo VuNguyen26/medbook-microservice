@@ -14,7 +14,7 @@ spring:
           predicates:
             - Path=/api/users/**
           filters:
-            - StripPrefix=0   # Giữ nguyên /api/users/**
+            - StripPrefix=1
 
         # 🧩 DOCTOR SERVICE
         - id: doctor-service
@@ -22,7 +22,7 @@ spring:
           predicates:
             - Path=/api/doctors/**
           filters:
-            - StripPrefix=0   # Giữ nguyên /api/doctors/**
+            - StripPrefix=1
 
         # 🧩 APPOINTMENT SERVICE
         - id: appointment-service
@@ -30,7 +30,7 @@ spring:
           predicates:
             - Path=/api/appointments/**
           filters:
-            - StripPrefix=0   # Giữ nguyên /api/appointments/**
+            - StripPrefix=1
 
         # 🧩 PATIENT SERVICE
         - id: patient-service
@@ -38,7 +38,7 @@ spring:
           predicates:
             - Path=/api/patients/**
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
 
         # 🧩 PAYMENT SERVICE
         - id: payment-service
@@ -46,7 +46,7 @@ spring:
           predicates:
             - Path=/api/payments/**
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
 
         # 🧩 MEDICAL RECORD SERVICE
         - id: medicalrecord-service
@@ -54,7 +54,7 @@ spring:
           predicates:
             - Path=/api/medical-records/**
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
 
         # 🧩 PRESCRIPTION SERVICE
         - id: prescription-service
@@ -62,7 +62,7 @@ spring:
           predicates:
             - Path=/api/prescriptions/**
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
 
         # 🧩 NOTIFICATION SERVICE
         - id: notification-service
@@ -70,15 +70,15 @@ spring:
           predicates:
             - Path=/api/notifications/**
           filters:
-            - StripPrefix=0
+            - StripPrefix=1
 
-      # Cho phép tự động định tuyến (optional)
+      # 🔍 Cho phép tự động định tuyến (nếu bạn muốn bỏ config thủ công)
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
 
-      # 🧠 Cho phép FE (React, Angular, v.v.) truy cập CORS qua Gateway
+      # 🌐 Cho phép frontend (React, Angular, v.v.) truy cập CORS qua Gateway
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -86,7 +86,7 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
 
-# 🛰️ Kết nối với Eureka
+# 🛰️ Kết nối với Eureka Server
 eureka:
   client:
     register-with-eureka: true
@@ -94,7 +94,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# 🩺 Actuator để kiểm tra health & route
+# 🩺 Actuator: kiểm tra health & route (hữu ích khi debug gateway)
 management:
   endpoints:
     web:
