@@ -52,7 +52,7 @@ spring:
         - id: medicalrecord-service
           uri: lb://MEDICALRECORD-SERVICE
           predicates:
-            - Path=/api/medical-records/**
+            - Path=/api/medicalrecords/**
           filters:
             - StripPrefix=1
 

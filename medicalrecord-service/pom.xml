@@ -5,50 +5,76 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- 🔹 Kế thừa từ POM cha -->
     <parent>
         <groupId>com.medbook</groupId>
         <artifactId>medbook-microservice</artifactId>
         <version>1.0.0</version>
-        <relativePath>../pom.xml</relativePath> <!-- ⚠️ đường dẫn quan trọng -->
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>medicalrecord-service</artifactId>
     <name>Medical Record Service</name>
     <description>Service quản lý hồ sơ bệnh án trong hệ thống MedBook</description>
 
+    <!-- 🔹 Phiên bản Java & Spring Cloud -->
+    <properties>
+        <java.version>17</java.version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+    </properties>
+
+    <!-- 🔹 Quản lý dependency version -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- 🔹 Dependencies -->
     <dependencies>
+        <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- JPA + MySQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
 
+        <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
+        <!-- Devtools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -56,6 +82,7 @@
         </dependency>
     </dependencies>
 
+    <!-- 🔹 Plugin build -->
     <build>
         <plugins>
             <plugin>

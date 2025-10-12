@@ -1,13 +1,28 @@
 package com.medbook.medicalrecord.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.medbook.medicalrecord.model.MedicalRecord;
+import com.medbook.medicalrecord.repository.MedicalRecordRepository;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
+@RequestMapping("/medicalrecords")
 public class MedicalRecordController {
 
-    @GetMapping("/records/test")
-    public String test() {
-        return "✅ Medical Record Service is running!";
+    private final MedicalRecordRepository repository;
+
+    public MedicalRecordController(MedicalRecordRepository repository) {
+        this.repository = repository;
+    }
+
+    @GetMapping
+    public List<MedicalRecord> getAllRecords() {
+        return repository.findAll();
+    }
+
+    @PostMapping
+    public MedicalRecord addRecord(@RequestBody MedicalRecord record) {
+        return repository.save(record);
     }
 }
