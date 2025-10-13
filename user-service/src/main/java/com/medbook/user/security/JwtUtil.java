@@ -13,7 +13,7 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    // ✅ Khóa bí mật (dài > 32 ký tự)
+    // Khóa bí mật (dài > 32 ký tự)
     private static final String SECRET_KEY = "thisIsASecretKeyForJWTMedBookProject12345";
     private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000; // 1 ngày (ms)
 
@@ -21,7 +21,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // ===================== 1️⃣ TẠO TOKEN =====================
+    // ===================== TẠO TOKEN =====================
     public String generateToken(String email, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -38,7 +38,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    // ===================== 2️⃣ TRÍCH XUẤT DỮ LIỆU =====================
+    // ===================== TRÍCH XUẤT DỮ LIỆU =====================
     public String extractUsername(String token) {
         try {
             return extractAllClaims(token).getSubject();
@@ -56,7 +56,7 @@ public class JwtUtil {
         }
     }
 
-    // ===================== 3️⃣ KIỂM TRA TOKEN =====================
+    // ===================== KIỂM TRA TOKEN =====================
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return username != null
@@ -69,7 +69,7 @@ public class JwtUtil {
         return expiration.before(new Date());
     }
 
-    // ===================== 4️⃣ NỘI BỘ =====================
+    // ===================== NỘI BỘ =====================
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

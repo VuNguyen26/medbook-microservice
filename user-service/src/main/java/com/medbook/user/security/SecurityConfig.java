@@ -31,25 +31,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ✅ Bật CORS đầy đủ
+                // Bật CORS đầy đủ
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // ✅ Tắt CSRF cho API
+                // Tắt CSRF cho API
                 .csrf(csrf -> csrf.disable())
 
-                // ✅ Cho phép truy cập các API công khai
+                // Cho phép truy cập các API công khai
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép tất cả OPTIONS request (preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Cho phép các API public không cần JWT
-                        .requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                        // Các request khác yêu cầu xác thực
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/auth/**",
+                                "/api/users/**",
+                                "/users/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
 
-                // ✅ Stateless session
+                // Stateless session
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // ✅ Thêm JWT filter
+                // Thêm JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

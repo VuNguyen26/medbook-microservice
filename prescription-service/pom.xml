@@ -67,7 +67,7 @@
         </dependency>
     </dependencies>
 
-    <!-- ✅ Thêm phần này để fix lỗi -parameters -->
+    <!-- Thêm phần này để fix lỗi -parameters -->
     <build>
         <plugins>
             <plugin>

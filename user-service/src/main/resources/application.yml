@@ -36,7 +36,7 @@ management:
     health:
       show-details: always
 
-# 🪪 Cấu hình JWT (tùy chọn để sau này dùng chung toàn hệ thống)
+# Cấu hình JWT (tùy chọn để sau này dùng chung toàn hệ thống)
 jwt:
   secret: thisIsASecretKeyForJWTMedBookProject12345
   expiration: 86400000   # 1 ngày

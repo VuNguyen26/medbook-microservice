@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/medbook_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
-    password: 123456       # ⚠️ Thay bằng mật khẩu thật của bạn nếu khác
+    password: 123456       # Thay bằng mật khẩu thật của bạn nếu khác
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -22,7 +22,7 @@ spring:
 
   jackson:
     serialization:
-      write-dates-as-timestamps: false   # ✅ Định dạng JSON thời gian dễ đọc
+      write-dates-as-timestamps: false   # Định dạng JSON thời gian dễ đọc
 
 eureka:
   client:
@@ -31,7 +31,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# 🧾 Logging
+# Logging
 logging:
   level:
     org.springframework.web: INFO

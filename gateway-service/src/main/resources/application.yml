@@ -8,7 +8,7 @@ spring:
   cloud:
     gateway:
       routes:
-        # 🧩 USER SERVICE
+        # USER SERVICE
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
@@ -16,7 +16,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 🧩 DOCTOR SERVICE
+        # DOCTOR SERVICE
         - id: doctor-service
           uri: lb://DOCTOR-SERVICE
           predicates:
@@ -24,7 +24,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 🧩 APPOINTMENT SERVICE
+        # APPOINTMENT SERVICE
         - id: appointment-service
           uri: lb://APPOINTMENT-SERVICE
           predicates:
@@ -32,7 +32,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 🧩 PATIENT SERVICE
+        # PATIENT SERVICE
         - id: patient-service
           uri: lb://PATIENT-SERVICE
           predicates:
@@ -40,7 +40,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 🧩 PAYMENT SERVICE
+        # PAYMENT SERVICE
         - id: payment-service
           uri: lb://PAYMENT-SERVICE
           predicates:
@@ -48,7 +48,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 🧩 MEDICAL RECORD SERVICE
+        # MEDICAL RECORD SERVICE
         - id: medicalrecord-service
           uri: lb://MEDICALRECORD-SERVICE
           predicates:
@@ -56,7 +56,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 🧩 PRESCRIPTION SERVICE
+        # PRESCRIPTION SERVICE
         - id: prescription-service
           uri: lb://PRESCRIPTION-SERVICE
           predicates:
@@ -64,19 +64,19 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 🧩 NOTIFICATION SERVICE
+        # NOTIFICATION SERVICE
         - id: notification-service
           uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
 
-      # 🔍 Cho phép tự động định tuyến (nếu bạn muốn bỏ config thủ công)
+      # Cho phép tự động định tuyến
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
 
-      # 🌐 Cho phép frontend (React, Angular, v.v.) truy cập CORS qua Gateway
+      # Cho phép frontend (React) truy cập CORS qua Gateway
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -84,7 +84,7 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
 
-# 🛰️ Kết nối với Eureka Server
+# Kết nối với Eureka Server
 eureka:
   client:
     register-with-eureka: true
@@ -92,7 +92,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# 🩺 Actuator: kiểm tra health & route (hữu ích khi debug gateway)
+# Actuator: kiểm tra health & route (hữu ích khi debug gateway)
 management:
   endpoints:
     web:
@@ -102,7 +102,7 @@ management:
     health:
       show-details: always
 
-# 🧾 Logging
+# Logging
 logging:
   level:
     org.springframework.cloud.gateway: INFO

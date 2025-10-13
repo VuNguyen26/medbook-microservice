@@ -31,29 +31,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 🧩 1️⃣ Kiểm tra URL để bỏ qua các endpoint public
+        // Kiểm tra URL để bỏ qua các endpoint public
         String path = request.getServletPath();
-        System.out.println("🧩 [JWT Filter] Request Path: " + path);
+        System.out.println("[JWT Filter] Request Path: " + path);
 
         if (isPublicPath(path)) {
-            System.out.println("✅ [JWT Filter] Skipping filter for: " + path);
+            System.out.println("[JWT Filter] Skipping filter for: " + path);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 🧩 2️⃣ Lấy Authorization header
+        // Lấy Authorization header
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("⚠️ [JWT Filter] No Bearer token found → continue without auth");
+            System.out.println("[JWT Filter] No Bearer token found → continue without auth");
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 🧩 3️⃣ Giải mã token
+        // Giải mã token
         String token = authHeader.substring(7);
         String username = jwtUtil.extractUsername(token);
 
-        // 🧩 4️⃣ Kiểm tra token hợp lệ
+        // Kiểm tra token hợp lệ
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
@@ -64,19 +64,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                System.out.println("✅ [JWT Filter] Token valid for user: " + username);
+                System.out.println("[JWT Filter] Token valid for user: " + username);
             } else {
-                System.out.println("❌ [JWT Filter] Invalid token for user: " + username);
+                System.out.println("[JWT Filter] Invalid token for user: " + username);
             }
         }
 
-        // 🧩 5️⃣ Cho phép request tiếp tục
+        // Cho phép request tiếp tục
         filterChain.doFilter(request, response);
     }
 
-    // =================== HÀM HỖ TRỢ ===================
     private boolean isPublicPath(String path) {
         return path.startsWith("/api/auth/")
+                || path.startsWith("/auth/")
+                || path.startsWith("/api/users")
+                || path.startsWith("/users")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/error")

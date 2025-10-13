@@ -63,7 +63,7 @@ public class AuthController {
                     .body(Map.of("message", "Invalid email or password"));
         }
 
-        // ✅ tạo JWT token
+        // tạo JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
         Map<String, Object> response = new HashMap<>();
