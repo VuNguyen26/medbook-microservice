@@ -21,5 +21,5 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // ✅ dùng Enum thay vì String
+    private Role role;
 }

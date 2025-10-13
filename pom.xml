@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 🏷️ Thông tin gốc của dự án -->
+    <!-- Thông tin gốc của dự án -->
     <groupId>com.medbook</groupId>
     <artifactId>medbook-microservice</artifactId>
     <version>1.0.0</version>
@@ -14,7 +14,7 @@
     <name>MedBook Microservice Parent</name>
     <description>Parent POM for MedBook Microservices</description>
 
-    <!-- 🧩 Liệt kê tất cả các module con -->
+    <!-- Liệt kê tất cả các module con -->
     <modules>
         <module>discovery-service</module>
         <module>gateway-service</module>
@@ -28,7 +28,7 @@
         <module>notification-service</module>
     </modules>
 
-    <!-- ⚙️ Cấu hình version chung -->
+    <!-- Cấu hình version chung -->
     <properties>
         <java.version>17</java.version>
         <spring.boot.version>3.3.5</spring.boot.version>
@@ -38,7 +38,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
 
-    <!-- 📦 BOM quản lý version -->
+    <!-- BOM quản lý version -->
     <dependencyManagement>
         <dependencies>
             <!-- Spring Boot BOM -->
@@ -61,7 +61,7 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- 📚 Dependencies dùng chung -->
+    <!-- Dependencies dùng chung -->
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -77,11 +77,11 @@
         </dependency>
     </dependencies>
 
-    <!-- 🧰 Plugin -->
+    <!-- Plugin -->
     <build>
         <pluginManagement>
             <plugins>
-                <!-- ⚙️ Compiler -->
+                <!-- Compiler -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -93,14 +93,14 @@
                     </configuration>
                 </plugin>
 
-                <!-- 🚀 Spring Boot plugin -->
+                <!-- Spring Boot plugin -->
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>${spring.boot.version}</version>
                 </plugin>
 
-                <!-- 🚫 Bỏ qua test khi build -->
+                <!-- Bỏ qua test khi build -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>

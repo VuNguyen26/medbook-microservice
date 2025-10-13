@@ -18,10 +18,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect  # ✅ nên dùng MySQLDialect chung, Hibernate sẽ tự nhận phiên bản
+        dialect: org.hibernate.dialect.MySQLDialect  # nên dùng MySQLDialect chung, Hibernate sẽ tự nhận phiên bản
   jackson:
     serialization:
-      write-dates-as-timestamps: false  # ✅ tránh lỗi khi parse LocalDateTime
+      write-dates-as-timestamps: false  # tránh lỗi khi parse LocalDateTime
 
 eureka:
   client:
