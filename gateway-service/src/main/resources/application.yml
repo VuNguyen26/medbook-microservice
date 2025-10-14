@@ -8,9 +8,17 @@ spring:
   cloud:
     gateway:
       routes:
+        # AUTH (LOGIN / REGISTER)
+        - id: user-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+
         # USER SERVICE
         - id: user-service
-          uri: lb://USER-SERVICE
+          uri: lb://user-service
           predicates:
             - Path=/api/users/**
           filters:
@@ -18,7 +26,7 @@ spring:
 
         # DOCTOR SERVICE
         - id: doctor-service
-          uri: lb://DOCTOR-SERVICE
+          uri: lb://doctor-service
           predicates:
             - Path=/api/doctors/**
           filters:
@@ -26,7 +34,7 @@ spring:
 
         # APPOINTMENT SERVICE
         - id: appointment-service
-          uri: lb://APPOINTMENT-SERVICE
+          uri: lb://appointment-service
           predicates:
             - Path=/api/appointments/**
           filters:
@@ -34,7 +42,7 @@ spring:
 
         # PATIENT SERVICE
         - id: patient-service
-          uri: lb://PATIENT-SERVICE
+          uri: lb://patient-service
           predicates:
             - Path=/api/patients/**
           filters:
@@ -42,7 +50,7 @@ spring:
 
         # PAYMENT SERVICE
         - id: payment-service
-          uri: lb://PAYMENT-SERVICE
+          uri: lb://payment-service
           predicates:
             - Path=/api/payments/**
           filters:
@@ -50,7 +58,7 @@ spring:
 
         # MEDICAL RECORD SERVICE
         - id: medicalrecord-service
-          uri: lb://MEDICALRECORD-SERVICE
+          uri: lb://medicalrecord-service
           predicates:
             - Path=/api/medicalrecords/**
           filters:
@@ -58,7 +66,7 @@ spring:
 
         # PRESCRIPTION SERVICE
         - id: prescription-service
-          uri: lb://PRESCRIPTION-SERVICE
+          uri: lb://prescription-service
           predicates:
             - Path=/api/prescriptions/**
           filters:
@@ -66,17 +74,17 @@ spring:
 
         # NOTIFICATION SERVICE
         - id: notification-service
-          uri: lb://NOTIFICATION-SERVICE
+          uri: lb://notification-service
           predicates:
             - Path=/api/notifications/**
+          filters:
+            - StripPrefix=1
 
-      # Cho phép tự động định tuyến
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
 
-      # Cho phép frontend (React) truy cập CORS qua Gateway
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -84,7 +92,6 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
 
-# Kết nối với Eureka Server
 eureka:
   client:
     register-with-eureka: true
@@ -92,7 +99,6 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# Actuator: kiểm tra health & route (hữu ích khi debug gateway)
 management:
   endpoints:
     web:
@@ -102,7 +108,6 @@ management:
     health:
       show-details: always
 
-# Logging
 logging:
   level:
     org.springframework.cloud.gateway: INFO

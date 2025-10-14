@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth") // sửa lại: bỏ /api
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -27,24 +27,20 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("message", "Email already exists!");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Email already exists!"));
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        if (user.getRole() == null) {
-            user.setRole(Role.PATIENT);
-        }
-
+        if (user.getRole() == null) user.setRole(Role.PATIENT);
         userRepository.save(user);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "User registered successfully");
-        response.put("email", user.getEmail());
-        response.put("role", user.getRole().name());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of(
+                        "message", "User registered successfully",
+                        "email", user.getEmail(),
+                        "role", user.getRole().name()
+                ));
     }
 
     // =================== LOGIN ===================
@@ -52,34 +48,41 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody User loginRequest) {
         Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
         if (userOpt.isEmpty()) {
+            System.out.println("Không tìm thấy email: " + loginRequest.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Invalid email or password"));
         }
 
         User user = userOpt.get();
 
+        // ⚙️ Thêm debug
+        System.out.println("Email tìm thấy: " + user.getEmail());
+        System.out.println("Password nhập vào: " + loginRequest.getPassword());
+        System.out.println("Password trong DB: " + user.getPassword());
+        System.out.println("Kết quả so khớp: " + passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()));
+
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Invalid email or password"));
         }
 
-        // tạo JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", token);
-        response.put("email", user.getEmail());
-        response.put("role", user.getRole().name());
-        response.put("message", "Login successful");
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "email", user.getEmail(),
+                "role", user.getRole().name(),
+                "message", "Login successful"
+        ));
     }
 
-    // =================== CHECK TOKEN (optional) ===================
+
+    // =================== CHECK TOKEN ===================
     @GetMapping("/check")
     public ResponseEntity<?> checkToken(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Missing token"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Missing token"));
         }
 
         String token = authHeader.substring(7);
@@ -87,7 +90,8 @@ public class AuthController {
         String role = jwtUtil.extractRole(token);
 
         if (email == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid token"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid token"));
         }
 
         return ResponseEntity.ok(Map.of("email", email, "role", role, "valid", true));
