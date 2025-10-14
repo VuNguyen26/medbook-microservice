@@ -13,19 +13,30 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # tự động tạo/sync bảng nếu chưa có
+      ddl-auto: update       # ✅ Tự động sync bảng nếu thay đổi entity
     show-sql: true
     properties:
-      hibernate.format_sql: true
-      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
+# ===================== JWT CONFIG =====================
+jwt:
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 dùng chung với user-service
+  expiration: 86400000   # 1 ngày (ms)
+
+# ===================== EUREKA CLIENT =====================
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
+# ===================== MANAGEMENT (ACTUATOR) =====================
 management:
   endpoints:
     web:
@@ -35,7 +46,10 @@ management:
     health:
       show-details: always
 
+# ===================== LOGGING =====================
 logging:
   level:
+    root: INFO
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
+    com.medbook.doctor: DEBUG
