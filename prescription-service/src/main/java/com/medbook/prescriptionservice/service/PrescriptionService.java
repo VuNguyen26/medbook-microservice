@@ -1,9 +1,9 @@
-package com.medbook.prescriptionsservice.service;
+package com.medbook.prescriptionservice.service;
 
-import com.medbook.prescriptionsservice.dto.PrescriptionRequest;
-import com.medbook.prescriptionsservice.dto.PrescriptionResponse;
-import com.medbook.prescriptionsservice.model.Prescription;
-import com.medbook.prescriptionsservice.repository.PrescriptionRepository;
+import com.medbook.prescriptionservice.dto.PrescriptionRequest;
+import com.medbook.prescriptionservice.dto.PrescriptionResponse;
+import com.medbook.prescriptionservice.model.Prescription;
+import com.medbook.prescriptionservice.repository.PrescriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

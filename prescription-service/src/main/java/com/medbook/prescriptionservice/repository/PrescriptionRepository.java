@@ -1,6 +1,6 @@
-package com.medbook.prescriptionsservice.repository;
+package com.medbook.prescriptionservice.repository;
 
-import com.medbook.prescriptionsservice.model.Prescription;
+import com.medbook.prescriptionservice.model.Prescription;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

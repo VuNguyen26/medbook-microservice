@@ -1,4 +1,4 @@
-package com.medbook.prescriptionsservice;
+package com.medbook.prescriptionservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

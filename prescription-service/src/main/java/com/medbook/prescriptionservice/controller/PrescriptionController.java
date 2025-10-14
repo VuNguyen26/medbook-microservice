@@ -1,8 +1,8 @@
-package com.medbook.prescriptionsservice.controller;
+package com.medbook.prescriptionservice.controller;
 
-import com.medbook.prescriptionsservice.dto.PrescriptionRequest;
-import com.medbook.prescriptionsservice.dto.PrescriptionResponse;
-import com.medbook.prescriptionsservice.service.PrescriptionService;
+import com.medbook.prescriptionservice.dto.PrescriptionRequest;
+import com.medbook.prescriptionservice.dto.PrescriptionResponse;
+import com.medbook.prescriptionservice.service.PrescriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
