@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update        # tự tạo / cập nhật bảng
+      ddl-auto: update        # dev: update | prod: validate
     show-sql: true
     properties:
       hibernate:
@@ -25,6 +25,12 @@ spring:
       write-dates-as-timestamps: false   # hiển thị LocalDate đẹp hơn
     date-format: yyyy-MM-dd
 
+# ===================== JWT CONFIG =====================
+jwt:
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 Khóa bí mật dùng chung toàn hệ thống
+  expiration: 86400000   # 1 ngày (ms)
+
+# ===================== EUREKA CONFIG =====================
 eureka:
   client:
     register-with-eureka: true
@@ -32,6 +38,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+# ===================== MANAGEMENT =====================
 management:
   endpoints:
     web:
@@ -41,8 +48,10 @@ management:
     health:
       show-details: always
 
+# ===================== LOGGING CONFIG =====================
 logging:
   level:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.medbook.medicalrecord: DEBUG   # 💡 thêm dòng này để xem log JWT chi tiết
