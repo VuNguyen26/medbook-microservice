@@ -13,17 +13,23 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update     # dev: update | prod: validate
+      ddl-auto: update       # dev: update | prod: validate
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect   # ✅ Dùng MySQL8Dialect để đồng nhất
 
   jackson:
     serialization:
-      write-dates-as-timestamps: false   # Định dạng JSON thời gian dễ đọc
+      write-dates-as-timestamps: false   # JSON thời gian dễ đọc
 
+# ===================== JWT CONFIG =====================
+jwt:
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 Khóa bí mật dùng chung toàn hệ thống
+  expiration: 86400000   # 1 ngày (ms)
+
+# ===================== EUREKA CONFIG =====================
 eureka:
   client:
     register-with-eureka: true
@@ -31,7 +37,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# Logging
+# ===================== LOGGING CONFIG =====================
 logging:
   level:
     org.springframework.web: INFO
