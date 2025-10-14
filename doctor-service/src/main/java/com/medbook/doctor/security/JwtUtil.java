@@ -14,13 +14,14 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private Key getKey() {
+    private Key getSigningKey() {
+        // HMAC-SHA256 yêu cầu key >= 32 bytes
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public Claims extractAllClaims(String token) throws JwtException {
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(getKey())
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -37,8 +38,9 @@ public class JwtUtil {
 
     public boolean isTokenValid(String token) {
         try {
-            Date expiration = extractAllClaims(token).getExpiration();
-            return expiration.after(new Date());
+            Claims claims = extractAllClaims(token);
+            Date expiration = claims.getExpiration();
+            return expiration != null && expiration.after(new Date());
         } catch (JwtException e) {
             return false;
         }
