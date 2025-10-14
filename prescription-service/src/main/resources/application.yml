@@ -20,18 +20,28 @@ spring:
         format_sql: true
         use_sql_comments: true
         dialect: org.hibernate.dialect.MySQLDialect
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
 
+# ===================== JWT CONFIG =====================
+jwt:
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 dùng chung toàn hệ thống
+  expiration: 86400000   # 1 ngày (tính bằng mili-giây)
+
+# ===================== EUREKA =====================
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+# ===================== LOGGING =====================
 logging:
   level:
+    root: INFO
     org.springframework.web: INFO
-    com.medbook.prescriptionsservice: DEBUG
+    com.medbook.prescriptionservice: DEBUG
+    com.medbook.prescriptionservice.security: DEBUG   # ✅ thêm dòng này
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE

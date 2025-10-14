@@ -1,4 +1,4 @@
-package com.medbook.prescriptionsservice.dto;
+package com.medbook.prescriptionservice.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

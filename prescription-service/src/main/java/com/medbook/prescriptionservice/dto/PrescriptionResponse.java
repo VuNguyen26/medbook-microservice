@@ -1,4 +1,4 @@
-package com.medbook.prescriptionsservice.dto;
+package com.medbook.prescriptionservice.dto;
 
 import java.time.LocalDateTime;
 

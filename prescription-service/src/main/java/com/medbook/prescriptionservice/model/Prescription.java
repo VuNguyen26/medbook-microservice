@@ -1,4 +1,4 @@
-package com.medbook.prescriptionsservice.model;
+package com.medbook.prescriptionservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;

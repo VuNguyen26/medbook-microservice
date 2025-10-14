@@ -1,4 +1,4 @@
-package com.medbook.prescriptionsservice.config;
+package com.medbook.prescriptionservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
