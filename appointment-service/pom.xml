@@ -26,7 +26,6 @@
         <maven.compiler.release>21</maven.compiler.release>
     </properties>
 
-    <!-- ✅ Thêm MySQL repo -->
     <repositories>
         <repository>
             <id>mysql-repo</id>
@@ -35,21 +34,20 @@
         </repository>
     </repositories>
 
-    <!-- Dependencies -->
+    <!-- ===================== DEPENDENCIES ===================== -->
     <dependencies>
-        <!-- Web REST API -->
+        <!-- 🌐 Web REST API -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- JPA + MySQL -->
+        <!-- 🗃️ JPA + MySQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- ✅ Sửa version MySQL về bản tồn tại trong repo -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -57,19 +55,19 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Eureka Client -->
+        <!-- 🧩 Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- Actuator -->
+        <!-- ⚙️ Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Lombok -->
+        <!-- 🧰 Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -77,16 +75,40 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- DevTools -->
+        <!-- 🔁 DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+
+        <!-- 🔒 SECURITY + JWT -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
-    <!-- Spring Cloud Dependency Management -->
+    <!-- ===================== SPRING CLOUD MANAGEMENT ===================== -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -99,9 +121,10 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- ===================== BUILD CONFIG ===================== -->
     <build>
         <plugins>
-            <!-- Compiler Plugin -->
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -119,7 +142,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Spring Boot Plugin -->
+            <!-- Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
