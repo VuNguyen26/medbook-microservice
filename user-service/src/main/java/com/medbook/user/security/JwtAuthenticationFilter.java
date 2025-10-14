@@ -31,29 +31,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Kiểm tra URL để bỏ qua các endpoint public
         String path = request.getServletPath();
-        System.out.println("[JWT Filter] Request Path: " + path);
 
+        // 🚫 Bỏ qua filter cho các endpoint public (login, register, swagger, error)
         if (isPublicPath(path)) {
-            System.out.println("[JWT Filter] Skipping filter for: " + path);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Lấy Authorization header
+        // 🧩 Lấy JWT từ Header Authorization
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("[JWT Filter] No Bearer token found → continue without auth");
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Giải mã token
         String token = authHeader.substring(7);
         String username = jwtUtil.extractUsername(token);
 
-        // Kiểm tra token hợp lệ
+        // ⚙️ Xác thực người dùng
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
@@ -64,21 +60,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                System.out.println("[JWT Filter] Token valid for user: " + username);
-            } else {
-                System.out.println("[JWT Filter] Invalid token for user: " + username);
             }
         }
 
-        // Cho phép request tiếp tục
+        // ✅ Cho phép request đi tiếp
         filterChain.doFilter(request, response);
     }
 
+    // 🔓 Các đường dẫn public
     private boolean isPublicPath(String path) {
-        return path.startsWith("/api/auth/")
-                || path.startsWith("/auth/")
-                || path.startsWith("/api/users")
-                || path.startsWith("/users")
+        return path.startsWith("/api/auth/")   // login, register
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/error")

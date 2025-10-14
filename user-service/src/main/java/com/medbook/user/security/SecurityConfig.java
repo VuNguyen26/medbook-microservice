@@ -27,16 +27,17 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Bật CORS đầy đủ
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // Tắt CSRF cho API
                 .csrf(csrf -> csrf.disable())
 
-                // Cho phép truy cập các API công khai
+                // ✅ chỉ định dùng custom UserDetailsService
+                .userDetailsService(customUserDetailsService)
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
@@ -51,10 +52,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // Stateless session
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Thêm JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -76,7 +74,8 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // ⚠️ Dòng quan trọng để tương thích hash $2a$ trong MySQL
+        return new BCryptPasswordEncoder(org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2A);
     }
 
     @Bean

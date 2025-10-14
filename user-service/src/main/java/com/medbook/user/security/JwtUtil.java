@@ -2,6 +2,7 @@ package com.medbook.user.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +14,16 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    // Khóa bí mật (dài > 32 ký tự)
-    private static final String SECRET_KEY = "thisIsASecretKeyForJWTMedBookProject12345";
-    private static final long EXPIRATION_TIME = 24 * 60 * 60 * 1000; // 1 ngày (ms)
+    // 🔹 Đọc secret & expiration từ application.yml
+    @Value("${jwt.secret}")
+    private String secretKey;
 
+    @Value("${jwt.expiration:86400000}") // 1 ngày (ms)
+    private long expirationTime;
+
+    // ===================== NỘI BỘ =====================
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     // ===================== TẠO TOKEN =====================
@@ -33,7 +38,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -69,7 +74,6 @@ public class JwtUtil {
         return expiration.before(new Date());
     }
 
-    // ===================== NỘI BỘ =====================
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/auth") // sửa lại: bỏ /api
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
