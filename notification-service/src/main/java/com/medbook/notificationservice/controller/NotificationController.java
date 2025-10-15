@@ -7,13 +7,25 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications") // ✅ Bỏ "/api" để khớp Gateway (StripPrefix=1)
 public class NotificationController {
 
     private final NotificationService service;
 
     public NotificationController(NotificationService service) {
         this.service = service;
+    }
+
+    // 🧪 Test public không cần JWT (dùng để kiểm tra filter JWT hoạt động)
+    @GetMapping("/public/test")
+    public String publicTest() {
+        return "✅ Public API: accessible without JWT token";
+    }
+
+    // 🧪 Test secure cần JWT
+    @GetMapping("/secure/test")
+    public String secureTest() {
+        return "🔐 Secure API: accessed successfully with valid JWT token";
     }
 
     // 🟢 Lấy toàn bộ thông báo (Admin hoặc test)
