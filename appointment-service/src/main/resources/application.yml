@@ -54,7 +54,7 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG                  # Hiển thị câu lệnh SQL thực thi
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Hiển thị giá trị tham số SQL
-    com.medbook.appointmentservice: DEBUG     # Log chi tiết cho code của bạn
+    com.medbook.appointmentservice: DEBUG     # Log chi tiết cho code
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
 

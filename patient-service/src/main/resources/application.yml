@@ -42,4 +42,7 @@ eureka:
 logging:
   level:
     org.springframework.web: INFO
+    org.springframework.security: DEBUG        # <== Thêm dòng này
+    com.medbook.patientservice.security: DEBUG # <== Thêm dòng này
     com.medbook.patientservice: DEBUG
+
