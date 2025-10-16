@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 🔹 Kế thừa từ POM cha -->
+    <!-- Kế thừa từ POM cha -->
     <parent>
         <groupId>com.medbook</groupId>
         <artifactId>medbook-microservice</artifactId>
@@ -17,14 +17,14 @@
     <name>Medical Record Service</name>
     <description>Service quản lý hồ sơ bệnh án trong hệ thống MedBook</description>
 
-    <!-- 🔹 Phiên bản Java & Spring Cloud -->
+    <!-- Phiên bản Java & Spring Cloud -->
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <!-- 🔹 Quản lý dependency version -->
+    <!-- Quản lý dependency version -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -37,15 +37,15 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- 🔹 Dependencies -->
+    <!-- Dependencies -->
     <dependencies>
-        <!-- 🌐 Web -->
+        <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- 🗃️ JPA + MySQL -->
+        <!-- JPA + MySQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -57,19 +57,19 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 🧩 Eureka Client -->
+        <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- ⚙️ Spring Security -->
+        <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- 🔑 JWT (JJWT) -->
+        <!-- JWT (JJWT) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -88,7 +88,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 🧰 Lombok -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -96,7 +96,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- 🔁 DevTools -->
+        <!-- DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -104,7 +104,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- 🧪 Test -->
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -112,7 +112,7 @@
         </dependency>
     </dependencies>
 
-    <!-- 🔹 Plugin build -->
+    <!-- Plugin build -->
     <build>
         <plugins>
             <plugin>

@@ -21,13 +21,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 🔒 Tắt CSRF vì microservice không dùng session
+                // Tắt CSRF vì microservice không dùng session
                 .csrf(csrf -> csrf.disable())
 
-                // 🧠 Sử dụng JWT thay cho session
+                // Sử dụng JWT thay cho session
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 🚪 Cấu hình quyền truy cập
+                // Cấu hình quyền truy cập
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép các endpoint public và Swagger docs truy cập tự do
                         .requestMatchers(
@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // ⚙️ Gắn filter JWT vào trước UsernamePasswordAuthenticationFilter
+                // Gắn filter JWT vào trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

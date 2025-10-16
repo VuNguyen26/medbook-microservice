@@ -7,6 +7,10 @@ spring:
 
   cloud:
     gateway:
+      # Giữ lại header Authorization và Host khi forward
+      default-filters:
+        - PreserveHostHeader=true
+
       routes:
         # AUTH (LOGIN / REGISTER)
         - id: user-auth
@@ -80,17 +84,17 @@ spring:
           filters:
             - StripPrefix=1
 
+      # Cấu hình mới cho Spring Cloud 2024 / Boot 3.5
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-
       globalcors:
-        corsConfigurations:
+        cors-configurations:
           '[/**]':
-            allowedOrigins: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
+            allowed-origins: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
 
 eureka:
   client:
@@ -110,5 +114,5 @@ management:
 
 logging:
   level:
-    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.gateway: DEBUG
     reactor.netty.http.client: WARN

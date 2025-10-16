@@ -3,6 +3,9 @@ package com.medbook.appointmentservice.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,33 +19,33 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // ✅ Sửa lại import cho đúng package của project hiện tại
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 🔒 Vô hiệu hóa CSRF (microservice không dùng session)
                 .csrf(csrf -> csrf.disable())
-
-                // 🧠 Sử dụng JWT, không tạo session
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 🚪 Cấu hình quyền truy cập
                 .authorizeHttpRequests(auth -> auth
-                        // Public API hoặc Swagger docs
                         .requestMatchers(
-                                "/api/appointments/public/**",
+                                "/appointments/public/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Các request khác cần JWT hợp lệ
+                        .requestMatchers(HttpMethod.POST, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/appointments/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
-
-                // ⚙️ Thêm filter JWT vào trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

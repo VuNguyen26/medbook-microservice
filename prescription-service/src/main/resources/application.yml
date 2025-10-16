@@ -27,7 +27,7 @@ spring:
 
 # ===================== JWT CONFIG =====================
 jwt:
-  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 dùng chung toàn hệ thống
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # dùng chung toàn hệ thống
   expiration: 86400000   # 1 ngày (tính bằng mili-giây)
 
 # ===================== EUREKA =====================
@@ -42,6 +42,6 @@ logging:
     root: INFO
     org.springframework.web: INFO
     com.medbook.prescriptionservice: DEBUG
-    com.medbook.prescriptionservice.security: DEBUG   # ✅ thêm dòng này
+    com.medbook.prescriptionservice.security: DEBUG   # thêm dòng này
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE

@@ -13,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * 🔒 Cấu hình bảo mật cho prescription-service
+ * Cấu hình bảo mật cho prescription-service
  */
 @Configuration
 @EnableWebSecurity
@@ -31,13 +31,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 🚫 Vô hiệu hóa CSRF vì dùng JWT, không session
+                // Vô hiệu hóa CSRF vì dùng JWT, không session
                 .csrf(csrf -> csrf.disable())
 
-                // ⚙️ Stateless session (mỗi request độc lập)
+                // Stateless session (mỗi request độc lập)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 🚪 Cấu hình quyền truy cập
+                // Cấu hình quyền truy cập
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập public + swagger
                         .requestMatchers(
@@ -47,15 +47,15 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // 🔥 Cho phép mọi role hợp lệ trong token truy cập
+                        // Cho phép mọi role hợp lệ trong token truy cập
                         .anyRequest().hasAnyRole("DOCTOR", "PATIENT", "ADMIN")
                 )
 
-                // 🧱 Tắt Basic Auth & Form Login
+                // Tắt Basic Auth & Form Login
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable())
 
-                // 🔗 Thêm JWT filter
+                // Thêm JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

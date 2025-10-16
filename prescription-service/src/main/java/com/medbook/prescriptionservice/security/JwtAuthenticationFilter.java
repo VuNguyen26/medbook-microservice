@@ -27,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil; // ✅ Import đúng package com.medbook.prescriptionservice.security.JwtUtil
+    private final JwtUtil jwtUtil; // Import đúng package com.medbook.prescriptionservice.security.JwtUtil
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,20 +37,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // 🧩 Log kiểm tra filter có hoạt động không
-        log.info("🧩 JwtAuthenticationFilter ACTIVATED for path: {}", path);
+        // Log kiểm tra filter có hoạt động không
+        log.info("JwtAuthenticationFilter ACTIVATED for path: {}", path);
 
-        // 🚫 Bỏ qua các endpoint public hoặc Swagger
+        // Bỏ qua các endpoint public hoặc Swagger
         if (isPublicPath(path)) {
-            log.debug("➡️ Public path detected, skipping JWT check for: {}", path);
+            log.debug("Public path detected, skipping JWT check for: {}", path);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 🔍 Lấy token từ header Authorization
+        // Lấy token từ header Authorization
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
-            log.warn("⚠️ No JWT token found in request header for path: {}", path);
+            log.warn("No JWT token found in request header for path: {}", path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -58,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = header.substring(7); // cắt "Bearer "
 
         try {
-            // ✅ Kiểm tra token hợp lệ
+            // Kiểm tra token hợp lệ
             if (jwtUtil.isTokenValid(token)) {
                 Claims claims = jwtUtil.extractAllClaims(token);
                 String username = claims.getSubject();
@@ -73,18 +73,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // ✅ Đặt Authentication vào SecurityContext
+                // Đặt Authentication vào SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.info("✅ Authenticated user: {} with role: {}", username, role);
+                log.info("Authenticated user: {} with role: {}", username, role);
             } else {
-                log.warn("❌ Invalid or expired JWT token for path: {}", path);
+                log.warn("Invalid or expired JWT token for path: {}", path);
             }
         } catch (Exception e) {
-            log.error("💥 JWT validation failed for path {}: {}", path, e.getMessage(), e);
+            log.error("JWT validation failed for path {}: {}", path, e.getMessage(), e);
             SecurityContextHolder.clearContext();
         }
 
-        // 🔁 Tiếp tục chuỗi filter
+        // Tiếp tục chuỗi filter
         filterChain.doFilter(request, response);
     }
 

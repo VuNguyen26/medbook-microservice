@@ -17,13 +17,13 @@
     <description>Manage prescriptions linked to medical records</description>
 
     <dependencies>
-        <!-- 🌐 Web + REST -->
+        <!-- Web + REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- 💾 JPA + MySQL -->
+        <!-- JPA + MySQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -33,19 +33,19 @@
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
 
-        <!-- ✅ Validation -->
+        <!-- Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- 🔐 Spring Security (bắt buộc để dùng JWT Filter) -->
+        <!-- Spring Security (bắt buộc để dùng JWT Filter) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- 🔑 JWT (JSON Web Token) -->
+        <!-- JWT (JSON Web Token) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -64,27 +64,27 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 🔁 Eureka Client -->
+        <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- 🧰 Lombok -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- ⚙️ Devtools (tự reload khi code thay đổi) -->
+        <!-- Devtools (tự reload khi code thay đổi) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 📘 Swagger UI -->
+        <!-- Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -92,7 +92,7 @@
         </dependency>
     </dependencies>
 
-    <!-- ⚙️ Build config -->
+    <!-- Build config -->
     <build>
         <plugins>
             <plugin>

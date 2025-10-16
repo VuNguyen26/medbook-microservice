@@ -1,6 +1,6 @@
 server:
   port: 8088
-  # ❌ Xóa phần context-path, để gateway tự định tuyến
+  # Xóa phần context-path, để gateway tự định tuyến
   # servlet:
   #   context-path: /api/notifications
 

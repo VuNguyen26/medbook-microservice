@@ -24,13 +24,13 @@ spring:
     serialization:
       write-dates-as-timestamps: false  # để trả JSON ngày/giờ đẹp, không bị timestamp
 
-# 🔒 JWT cấu hình (thêm phần này)
+# JWT cấu hình (thêm phần này)
 jwt:
-  # ⚠️ Dùng chung secret key với user-service và doctor-service
+  # Dùng chung secret key với user-service và doctor-service
   # Key phải đủ dài (tối thiểu 32 ký tự)
   secret: "thisIsASecretKeyForJWTMedBookProject12345"
 
-# 🧩 Eureka Client
+# Eureka Client
 eureka:
   client:
     register-with-eureka: true
@@ -38,7 +38,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# 🧠 Logging
+# Logging
 logging:
   level:
     org.springframework.web: INFO

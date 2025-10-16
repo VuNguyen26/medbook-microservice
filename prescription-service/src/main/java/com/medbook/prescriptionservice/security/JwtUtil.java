@@ -25,7 +25,7 @@ public class JwtUtil {
      */
     private Key getSigningKey() {
         Key key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-        log.debug("🔑 Using signing key: {}", secretKey);
+        log.debug("Using signing key: {}", secretKey);
         return key;
     }
 
@@ -33,7 +33,7 @@ public class JwtUtil {
      * Giải mã toàn bộ claims từ token
      */
     public Claims extractAllClaims(String token) throws JwtException {
-        log.debug("🔍 Extracting claims from token: {}", token.substring(0, Math.min(token.length(), 30)) + "...");
+        log.debug("Extracting claims from token: {}", token.substring(0, Math.min(token.length(), 30)) + "...");
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -56,7 +56,7 @@ public class JwtUtil {
     public String extractRole(String token) {
         Object role = extractAllClaims(token).get("role");
         String result = role != null ? role.toString() : null;
-        log.info("🎭 Extracted role: {}", result);
+        log.info("Extracted role: {}", result);
         return result;
     }
 
@@ -72,27 +72,27 @@ public class JwtUtil {
             expiration = claims.getExpiration();
             valid = expiration != null && expiration.after(new Date());
 
-            log.info("🕒 Token expiration: {}", expiration);
-            log.info("✅ Token valid: {}", valid);
+            log.info("Token expiration: {}", expiration);
+            log.info("Token valid: {}", valid);
 
             return valid;
         } catch (ExpiredJwtException e) {
-            log.warn("⚠️ Token expired: {}", e.getMessage());
+            log.warn("Token expired: {}", e.getMessage());
             return false;
         } catch (MalformedJwtException e) {
-            log.error("❌ Malformed JWT: {}", e.getMessage(), e);
+            log.error("Malformed JWT: {}", e.getMessage(), e);
             return false;
         } catch (UnsupportedJwtException e) {
-            log.error("❌ Unsupported JWT: {}", e.getMessage(), e);
+            log.error("Unsupported JWT: {}", e.getMessage(), e);
             return false;
         } catch (SignatureException e) {
-            log.error("❌ Invalid JWT signature (secret key mismatch): {}", e.getMessage(), e);
+            log.error("Invalid JWT signature (secret key mismatch): {}", e.getMessage(), e);
             return false;
         } catch (JwtException e) {
-            log.error("❌ General JWT error: {}", e.getMessage(), e);
+            log.error("General JWT error: {}", e.getMessage(), e);
             return false;
         } catch (Exception e) {
-            log.error("💥 Unexpected error while validating JWT: {}", e.getMessage(), e);
+            log.error("Unexpected error while validating JWT: {}", e.getMessage(), e);
             return false;
         }
     }

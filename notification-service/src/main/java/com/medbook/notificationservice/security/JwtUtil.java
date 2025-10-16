@@ -8,7 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey; // ✅ thêm import này
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -18,16 +18,16 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    // 🔑 Trả về SecretKey chuẩn cho HS256
+    // Trả về SecretKey chuẩn cho HS256
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    // 🔍 Giải mã token
+    // Giải mã token
     public Claims extractAllClaims(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(getSigningKey())   // ✅ giờ kiểu đúng là SecretKey
+                    .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
@@ -38,18 +38,18 @@ public class JwtUtil {
         }
     }
 
-    // 👤 Lấy username
+    // Lấy username
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    // 👮‍♀️ Lấy role
+    // Lấy role
     public String extractRole(String token) {
         Object role = extractAllClaims(token).get("role");
         return role != null ? role.toString() : null;
     }
 
-    // ✅ Kiểm tra token hợp lệ
+    // Kiểm tra token hợp lệ
     public boolean isTokenValid(String token) {
         try {
             Claims claims = extractAllClaims(token);

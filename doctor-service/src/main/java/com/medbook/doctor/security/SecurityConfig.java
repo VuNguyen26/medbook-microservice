@@ -21,13 +21,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 🔒 Vô hiệu hóa CSRF (microservice không dùng session)
+                // Vô hiệu hóa CSRF (microservice không dùng session)
                 .csrf(csrf -> csrf.disable())
 
-                // 🧠 Cấu hình session stateless (chỉ dùng JWT)
+                // Cấu hình session stateless (chỉ dùng JWT)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 🚪 Cấu hình quyền truy cập
+                // Cấu hình quyền truy cập
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép các endpoint public hoặc swagger không cần token
                         .requestMatchers(

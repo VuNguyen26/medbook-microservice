@@ -35,7 +35,7 @@ public class Prescription {
     @Column(nullable = false)
     private LocalDateTime issuedAt;
 
-    // ✅ Tự động gán issuedAt khi insert
+    // Tự động gán issuedAt khi insert
     @PrePersist
     public void prePersist() {
         if (issuedAt == null) {

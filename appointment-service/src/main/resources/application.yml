@@ -26,8 +26,8 @@ spring:
 
 # ===================== JWT CONFIG =====================
 jwt:
-  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 Dùng chung toàn hệ thống
-  expiration: 86400000   # 1 ngày (ms)
+  secret: thisIsASecretKeyForJWTMedBookProject12345
+  expiration: 86400000
 
 # ===================== EUREKA CONFIG =====================
 eureka:
@@ -37,8 +37,24 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# ===================== LOGGING CONFIG =====================
+# ===================== MANAGEMENT =====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# ===================== LOGGING =====================
 logging:
   level:
-    org.springframework.web: INFO
-    com.medbook.appointmentservice: DEBUG
+    root: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG                  # Hiển thị câu lệnh SQL thực thi
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Hiển thị giá trị tham số SQL
+    com.medbook.appointmentservice: DEBUG     # Log chi tiết cho code của bạn
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"
+

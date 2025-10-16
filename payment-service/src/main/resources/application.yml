@@ -18,7 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect   # ✅ Dùng MySQL8Dialect để đồng nhất
+        dialect: org.hibernate.dialect.MySQL8Dialect   # Dùng MySQL8Dialect để đồng nhất
 
   jackson:
     serialization:
@@ -26,7 +26,7 @@ spring:
 
 # ===================== JWT CONFIG =====================
 jwt:
-  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 Khóa bí mật dùng chung toàn hệ thống
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # Khóa bí mật dùng chung toàn hệ thống
   expiration: 86400000   # 1 ngày (ms)
 
 # ===================== EUREKA CONFIG =====================

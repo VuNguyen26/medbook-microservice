@@ -18,12 +18,12 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    // 🔑 Tạo khóa ký HMAC-SHA256 (bảo đảm encoding UTF-8)
+    // Tạo khóa ký HMAC-SHA256 (bảo đảm encoding UTF-8)
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    // 🧩 Giải mã toàn bộ claims từ token
+    // Giải mã toàn bộ claims từ token
     public Claims extractAllClaims(String token) throws JwtException {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -32,28 +32,28 @@ public class JwtUtil {
                 .getBody();
     }
 
-    // 👤 Lấy username (subject) từ token
+    // Lấy username (subject) từ token
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    // 🧠 Lấy role (quyền) từ token
+    // Lấy role (quyền) từ token
     public String extractRole(String token) {
         Object role = extractAllClaims(token).get("role");
         return role != null ? role.toString() : null;
     }
 
-    // ✅ Kiểm tra token có còn hạn không
+    // Kiểm tra token có còn hạn không
     public boolean isTokenValid(String token) {
         try {
             Claims claims = extractAllClaims(token);
             Date expiration = claims.getExpiration();
             return expiration != null && expiration.after(new Date());
         } catch (ExpiredJwtException e) {
-            System.out.println("⚠️ Token expired: " + e.getMessage());
+            System.out.println("Token expired: " + e.getMessage());
             return false;
         } catch (JwtException e) {
-            System.out.println("❌ Invalid JWT: " + e.getMessage());
+            System.out.println("Invalid JWT: " + e.getMessage());
             return false;
         }
     }

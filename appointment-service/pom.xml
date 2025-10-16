@@ -36,13 +36,13 @@
 
     <!-- ===================== DEPENDENCIES ===================== -->
     <dependencies>
-        <!-- 🌐 Web REST API -->
+        <!-- Web REST API -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- 🗃️ JPA + MySQL -->
+        <!-- JPA + MySQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -55,19 +55,19 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 🧩 Eureka Client -->
+        <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- ⚙️ Actuator -->
+        <!-- Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- 🧰 Lombok -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -75,7 +75,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- 🔁 DevTools -->
+        <!-- DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -83,7 +83,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- 🔒 SECURITY + JWT -->
+        <!-- SECURITY + JWT -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>

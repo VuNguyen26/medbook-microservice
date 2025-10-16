@@ -19,20 +19,20 @@ public class PrescriptionController {
 
     private final PrescriptionService service;
 
-    // 🩺 Tạo mới toa thuốc
+    // Tạo mới toa thuốc
     @PostMapping
     public ResponseEntity<PrescriptionResponse> create(@Valid @RequestBody PrescriptionRequest req) {
         PrescriptionResponse created = service.create(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    // 🔍 Lấy toa thuốc theo ID
+    // Lấy toa thuốc theo ID
     @GetMapping("/{id}")
     public ResponseEntity<PrescriptionResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(service.get(id));
     }
 
-    // 🔎 Lọc toa thuốc theo medicalRecordId / patientId / doctorId / hoặc trả tất cả
+    // Lọc toa thuốc theo medicalRecordId / patientId / doctorId / hoặc trả tất cả
     @GetMapping
     public ResponseEntity<List<PrescriptionResponse>> findPrescriptions(
             @RequestParam(required = false) Long medicalRecordId,
@@ -55,7 +55,7 @@ public class PrescriptionController {
         return ResponseEntity.ok(result);
     }
 
-    // ⚙️ Cập nhật trạng thái toa thuốc (ACTIVE / CANCELLED / ...)
+    // Cập nhật trạng thái toa thuốc (ACTIVE / CANCELLED / ...)
     @PatchMapping("/{id}/status")
     public ResponseEntity<PrescriptionResponse> updateStatus(
             @PathVariable Long id,
@@ -64,7 +64,7 @@ public class PrescriptionController {
         return ResponseEntity.ok(updated);
     }
 
-    // ❌ Xóa toa thuốc
+    // Xóa toa thuốc
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);

@@ -15,22 +15,22 @@ public class NotificationService {
         this.repository = repository;
     }
 
-    // 🟢 Lấy tất cả thông báo (cho admin hoặc test)
+    // Lấy tất cả thông báo (cho admin hoặc test)
     public List<Notification> getAllNotifications() {
         return repository.findAll();
     }
 
-    // 🟢 Lấy danh sách thông báo của 1 user
+    // Lấy danh sách thông báo của 1 user
     public List<Notification> getNotificationsByUser(Long userId) {
         return repository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    // 🟢 Tạo mới 1 thông báo
+    // Tạo mới 1 thông báo
     public Notification createNotification(Notification notification) {
         return repository.save(notification);
     }
 
-    // 🟢 Đánh dấu thông báo là đã đọc
+    // Đánh dấu thông báo là đã đọc
     public Notification markAsRead(Long id) {
         Notification notif = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
@@ -38,7 +38,7 @@ public class NotificationService {
         return repository.save(notif);
     }
 
-    // 🔴 Xóa thông báo theo ID
+    // Xóa thông báo theo ID
     public void deleteNotification(Long id) {
         repository.deleteById(id);
     }

@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // 🚫 Bỏ qua filter cho các API public
+        // Bỏ qua filter cho các API public
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        // ⚠️ Nếu không có token → cho qua để Spring Security xử lý tiếp
+        // Nếu không có token → cho qua để Spring Security xử lý tiếp
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -62,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // ✅ Đặt Authentication vào context
+                // Đặt Authentication vào context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path) {
-        // 🔧 Đổi từ /api/doctors/public thành /api/patients/public
+        // Đổi từ /api/doctors/public thành /api/patients/public
         return path.startsWith("/api/patients/public")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
