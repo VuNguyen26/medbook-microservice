@@ -7,9 +7,16 @@ spring:
 
   cloud:
     gateway:
-      # Giữ lại header Authorization và Host khi forward
+      # Giữ lại header Authorization và Host khi forward qua các service
       default-filters:
         - PreserveHostHeader=true
+        - RemoveRequestHeader=Cookie
+        # Cú pháp chuẩn cho Spring Cloud Gateway 2024 / Boot 3.5
+        - name: AddRequestHeader
+          args:
+            name: Authorization
+            value: "#{request.headers.Authorization}"
+        - AddResponseHeader=Access-Control-Allow-Origin, *
 
       routes:
         # AUTH (LOGIN / REGISTER)
@@ -84,11 +91,13 @@ spring:
           filters:
             - StripPrefix=1
 
-      # Cấu hình mới cho Spring Cloud 2024 / Boot 3.5
+      # Cho phép tự động phát hiện service từ Eureka
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
+
+      # Cấu hình CORS toàn cục
       globalcors:
         cors-configurations:
           '[/**]':
@@ -96,6 +105,7 @@ spring:
             allowed-methods: "*"
             allowed-headers: "*"
 
+# Eureka Client
 eureka:
   client:
     register-with-eureka: true
@@ -103,6 +113,7 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+# Actuator health & info
 management:
   endpoints:
     web:
@@ -112,6 +123,7 @@ management:
     health:
       show-details: always
 
+# Logging
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/doctors")  // thêm /api để đồng bộ với gateway
+@RequestMapping("/doctors")
 @CrossOrigin(origins = "*")
 public class DoctorController {
 
@@ -20,6 +20,12 @@ public class DoctorController {
     @GetMapping
     public List<Doctor> getAllDoctors() {
         return repository.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Doctor getDoctorById(@PathVariable Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
     }
 
     @PostMapping
