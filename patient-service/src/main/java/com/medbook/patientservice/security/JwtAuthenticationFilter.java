@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtUtil jwtUtil;
 
     @Override
@@ -30,28 +33,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getServletPath();
+        logger.info("➡️ [Filter] Request URI: {}", path);
 
         // Bỏ qua filter cho các API public
         if (isPublicPath(path)) {
+            logger.debug("🟢 Public path detected: {}, skip JWT validation", path);
             filterChain.doFilter(request, response);
             return;
         }
 
         String header = request.getHeader("Authorization");
 
-        // Nếu không có token → cho qua để Spring Security xử lý tiếp
         if (header == null || !header.startsWith("Bearer ")) {
+            logger.warn("❌ No Authorization header or invalid format for URI: {}", path);
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = header.substring(7);
+        logger.debug("🔑 JWT token received: {}", token);
 
         try {
             if (jwtUtil.isTokenValid(token)) {
                 Claims claims = jwtUtil.extractAllClaims(token);
                 String username = claims.getSubject();
                 String role = jwtUtil.extractRole(token);
+
+                logger.info("Token valid. User: {}, Role: {}", username, role);
 
                 List<SimpleGrantedAuthority> authorities =
                         (role != null)
@@ -62,11 +70,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Đặt Authentication vào context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.info("Authentication set in context for user: {}", username);
+            } else {
+                logger.warn("Invalid or expired JWT token");
             }
         } catch (Exception e) {
-            // Nếu token lỗi → clear context
+            logger.error("Error while validating JWT: {}", e.getMessage(), e);
             SecurityContextHolder.clearContext();
         }
 
@@ -74,11 +84,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path) {
-        // Đổi từ /api/doctors/public thành /api/patients/public
-        return path.startsWith("/api/patients/public")
+        boolean isPublic = path.startsWith("/api/patients/public")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/")
                 || path.equals("/error");
+        if (isPublic) logger.debug("🟢 Path '{}' is public", path);
+        return isPublic;
     }
 }

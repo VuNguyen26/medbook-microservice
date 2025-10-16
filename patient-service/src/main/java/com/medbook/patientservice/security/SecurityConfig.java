@@ -1,6 +1,5 @@
 package com.medbook.patientservice.security;
 
-import com.medbook.patientservice.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,26 +21,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Vô hiệu hóa CSRF (microservice không dùng session)
+                // ❌ Tắt CSRF (vì microservice dùng JWT, không dùng session)
                 .csrf(csrf -> csrf.disable())
 
-                // Cấu hình session stateless (chỉ dùng JWT)
+                // ⚙️ Cấu hình stateless session (chỉ JWT)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Cấu hình quyền truy cập
+                // 🔐 Cấu hình quyền truy cập
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép các endpoint public hoặc swagger không cần token
+                        // ✅ Cho phép các endpoint public và swagger
                         .requestMatchers(
+                                "/patients/public/**",
                                 "/api/patients/public/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/error"
                         ).permitAll()
-                        // Các request còn lại phải có token
+
+                        // ✅ Cho phép tất cả request có JWT (bất kỳ role)
                         .anyRequest().authenticated()
                 )
 
-                // Gắn filter JWT vào trước UsernamePasswordAuthenticationFilter
+                // 🧱 Gắn filter JWT trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
