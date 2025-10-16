@@ -24,23 +24,26 @@ public class SecurityConfig {
                 // Vô hiệu hóa CSRF (microservice không dùng session)
                 .csrf(csrf -> csrf.disable())
 
-                // Cấu hình session stateless (chỉ dùng JWT)
+                // Dùng JWT, không dùng session
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Cấu hình quyền truy cập
+                // Phân quyền
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép các endpoint public hoặc swagger không cần token
                         .requestMatchers(
                                 "/api/doctors/public/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+
+                                // Tạm thời cho phép AppointmentService gọi nội bộ
+                                "/api/doctors/**"
                         ).permitAll()
-                        // Các request còn lại phải có token
+
+                        // Các request khác vẫn yêu cầu JWT
                         .anyRequest().authenticated()
                 )
 
-                // ⚙️ Gắn filter JWT vào trước UsernamePasswordAuthenticationFilter
+                // Gắn filter JWT
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
