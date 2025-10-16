@@ -12,13 +12,13 @@ public class UserServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(UserServiceApplication.class, args);
 
-        // ✅ ĐOẠN TEST ENCODE PASSWORD
+        // ĐOẠN TEST ENCODE PASSWORD
         String rawPassword = "123456";
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encodedPassword = encoder.encode(rawPassword);
         System.out.println("\n=======================================");
-        System.out.println("🔑 Raw password: " + rawPassword);
-        System.out.println("🔒 Encoded password (Spring format):");
+        System.out.println("Raw password: " + rawPassword);
+        System.out.println("Encoded password (Spring format):");
         System.out.println(encodedPassword);
         System.out.println("=======================================\n");
     }

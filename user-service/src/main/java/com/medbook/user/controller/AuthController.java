@@ -55,7 +55,7 @@ public class AuthController {
 
         User user = userOpt.get();
 
-        // ⚙️ Thêm debug
+        // Thêm debug
         System.out.println("Email tìm thấy: " + user.getEmail());
         System.out.println("Password nhập vào: " + loginRequest.getPassword());
         System.out.println("Password trong DB: " + user.getPassword());

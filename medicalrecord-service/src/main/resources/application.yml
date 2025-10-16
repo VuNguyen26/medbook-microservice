@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/medbook_medicalrecorddb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
-    password: 123456   # ⚠️ đổi đúng mật khẩu MySQL của bạn
+    password: 123456   # đổi đúng mật khẩu MySQL của bạn
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -27,7 +27,7 @@ spring:
 
 # ===================== JWT CONFIG =====================
 jwt:
-  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 Khóa bí mật dùng chung toàn hệ thống
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # Khóa bí mật dùng chung toàn hệ thống
   expiration: 86400000   # 1 ngày (ms)
 
 # ===================== EUREKA CONFIG =====================
@@ -54,4 +54,4 @@ logging:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    com.medbook.medicalrecord: DEBUG   # 💡 thêm dòng này để xem log JWT chi tiết
+    com.medbook.medicalrecord: DEBUG   # thêm dòng này để xem log JWT chi tiết

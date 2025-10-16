@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    // 🟢 Lấy danh sách thông báo của user, sắp xếp mới nhất trước
+    // Lấy danh sách thông báo của user, sắp xếp mới nhất trước
     List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

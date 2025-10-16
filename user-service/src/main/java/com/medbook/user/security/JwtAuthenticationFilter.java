@@ -33,13 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // 🚫 Bỏ qua filter cho các endpoint public (login, register, swagger, error)
+        // Bỏ qua filter cho các endpoint public (login, register, swagger, error)
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 🧩 Lấy JWT từ Header Authorization
+        // Lấy JWT từ Header Authorization
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         String username = jwtUtil.extractUsername(token);
 
-        // ⚙️ Xác thực người dùng
+        // Xác thực người dùng
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
@@ -63,11 +63,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // ✅ Cho phép request đi tiếp
+        // Cho phép request đi tiếp
         filterChain.doFilter(request, response);
     }
 
-    // 🔓 Các đường dẫn public
+    // Các đường dẫn public
     private boolean isPublicPath(String path) {
         return path.startsWith("/api/auth/")   // login, register
                 || path.startsWith("/v3/api-docs")

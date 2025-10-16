@@ -7,10 +7,10 @@ spring:
 
 eureka:
   instance:
-    hostname: localhost          # 🟢 tên host hiển thị trong dashboard
+    hostname: localhost          # tên host hiển thị trong dashboard
   client:
-    register-with-eureka: false  # 🟢 không đăng ký chính nó
-    fetch-registry: false        # 🟢 không lấy danh sách service
+    register-with-eureka: false  # không đăng ký chính nó
+    fetch-registry: false        # không lấy danh sách service
   server:
-    enable-self-preservation: false   # ⚙️ tắt cơ chế tự bảo vệ khi test (optional)
+    enable-self-preservation: false   # tắt cơ chế tự bảo vệ khi test (optional)
     wait-time-in-ms-when-sync-empty: 0

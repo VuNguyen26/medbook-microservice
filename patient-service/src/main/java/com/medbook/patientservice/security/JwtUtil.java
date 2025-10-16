@@ -21,7 +21,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    // 🔍 Giải mã toàn bộ Claims từ token
+    // Giải mã toàn bộ Claims từ token
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -30,18 +30,18 @@ public class JwtUtil {
                 .getBody();
     }
 
-    // 👤 Lấy username từ token
+    // Lấy username từ token
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    // 👮‍♀️ Lấy role từ token
+    // Lấy role từ token
     public String extractRole(String token) {
         Object role = extractAllClaims(token).get("role");
         return role != null ? role.toString() : null;
     }
 
-    // ✅ Kiểm tra token còn hạn hay không
+    // Kiểm tra token còn hạn hay không
     public boolean isTokenValid(String token) {
         try {
             Claims claims = extractAllClaims(token);

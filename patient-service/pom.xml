@@ -30,13 +30,13 @@
     </repositories>
 
     <dependencies>
-        <!-- 🌐 Web -->
+        <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- 🗃️ JPA + MySQL -->
+        <!-- JPA + MySQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -48,19 +48,19 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- ☁️ Eureka Client -->
+        <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- 🔐 Spring Security -->
+        <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- 🔑 JWT -->
+        <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -79,7 +79,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- 🧰 Lombok -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -87,7 +87,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- 🧑‍💻 DevTools (chỉ dùng local) -->
+        <!-- DevTools (chỉ dùng local) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -95,7 +95,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- ✅ Validation (nếu bạn có @Valid trong DTO) -->
+        <!-- Validation (nếu bạn có @Valid trong DTO) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>

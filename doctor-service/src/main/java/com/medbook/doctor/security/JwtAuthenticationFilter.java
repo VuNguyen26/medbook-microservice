@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // 🚫 Bỏ qua filter cho các API public
+        // Bỏ qua filter cho các API public
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        // ⚠️ Nếu không có token, vẫn cho qua filterChain (để Security xử lý)
+        // Nếu không có token, vẫn cho qua filterChain (để Security xử lý)
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;

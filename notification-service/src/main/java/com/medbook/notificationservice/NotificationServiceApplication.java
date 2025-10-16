@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
-@EnableDiscoveryClient   // 🟢 Cho phép Notification Service đăng ký vào Eureka
+@EnableDiscoveryClient   // Cho phép Notification Service đăng ký vào Eureka
 public class NotificationServiceApplication {
 
     public static void main(String[] args) {

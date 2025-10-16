@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // 🚫 Bỏ qua filter cho các API public hoặc Swagger
+        // Bỏ qua filter cho các API public hoặc Swagger
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
-            log.debug("⚠️ No JWT token found for path: {}", path);
+            log.debug("No JWT token found for path: {}", path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -64,14 +64,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // ✅ Đặt Authentication vào SecurityContext
+                // Đặt Authentication vào SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("✅ Authenticated user: {} with role: {}", username, role);
+                log.debug("Authenticated user: {} with role: {}", username, role);
             } else {
-                log.warn("❌ Invalid or expired JWT token");
+                log.warn("Invalid or expired JWT token");
             }
         } catch (Exception e) {
-            log.error("❌ JWT validation failed: {}", e.getMessage());
+            log.error("JWT validation failed: {}", e.getMessage());
             SecurityContextHolder.clearContext();
         }
 
@@ -79,7 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path) {
-        // ✅ Đổi path public theo đúng service hiện tại
+        // Đổi path public theo đúng service hiện tại
         return path.startsWith("/api/payments/public")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")

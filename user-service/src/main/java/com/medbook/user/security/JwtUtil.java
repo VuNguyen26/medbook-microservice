@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    // 🔹 Đọc secret & expiration từ application.yml
+    // Đọc secret & expiration từ application.yml
     @Value("${jwt.secret}")
     private String secretKey;
 

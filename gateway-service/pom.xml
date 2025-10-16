@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 🏷️ Thông tin cơ bản -->
+    <!-- Thông tin cơ bản -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -19,33 +19,33 @@
     <name>gateway-service</name>
     <description>API Gateway for MedBook Microservices</description>
 
-    <!-- ⚙️ Cấu hình version -->
+    <!-- Cấu hình version -->
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
     </properties>
 
-    <!-- 📦 Dependencies -->
+    <!-- Dependencies -->
     <dependencies>
-        <!-- 🌐 Spring Cloud Gateway (Reactive WebFlux) -->
+        <!-- Spring Cloud Gateway (Reactive WebFlux) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
-        <!-- 🔗 Eureka Client -->
+        <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- 🩺 Actuator (kiểm tra health, routes, metrics) -->
+        <!-- Actuator (kiểm tra health, routes, metrics) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- 🧪 Test -->
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -53,7 +53,7 @@
         </dependency>
     </dependencies>
 
-    <!-- 📘 Quản lý version của Spring Cloud -->
+    <!-- Quản lý version của Spring Cloud -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -66,10 +66,10 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- 🛠️ Build Plugins -->
+    <!-- Build Plugins -->
     <build>
         <plugins>
-            <!-- ⚙️ Maven Compiler -->
+            <!-- Maven Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -80,7 +80,7 @@
                 </configuration>
             </plugin>
 
-            <!-- 🚀 Spring Boot Plugin -->
+            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

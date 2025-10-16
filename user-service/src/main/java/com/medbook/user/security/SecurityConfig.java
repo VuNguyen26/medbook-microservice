@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
 
-                // ✅ chỉ định dùng custom UserDetailsService
+                // chỉ định dùng custom UserDetailsService
                 .userDetailsService(customUserDetailsService)
 
                 .authorizeHttpRequests(auth -> auth
@@ -74,7 +74,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // ⚠️ Dòng quan trọng để tương thích hash $2a$ trong MySQL
+        // Dòng quan trọng để tương thích hash $2a$ trong MySQL
         return new BCryptPasswordEncoder(org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2A);
     }
 

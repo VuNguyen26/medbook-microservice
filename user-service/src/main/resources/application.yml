@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update       # ✅ Tự đồng bộ bảng nếu có thay đổi entity
+      ddl-auto: update       # Tự đồng bộ bảng nếu có thay đổi entity
     show-sql: true
     properties:
       hibernate:
@@ -22,7 +22,7 @@ spring:
 
 # ===================== JWT CONFIG =====================
 jwt:
-  secret: thisIsASecretKeyForJWTMedBookProject12345   # 🔑 Khóa bí mật dùng chung toàn hệ thống
+  secret: thisIsASecretKeyForJWTMedBookProject12345   # Khóa bí mật dùng chung toàn hệ thống
   expiration: 86400000   # 1 ngày (ms)
 
 # ===================== EUREKA CLIENT =====================

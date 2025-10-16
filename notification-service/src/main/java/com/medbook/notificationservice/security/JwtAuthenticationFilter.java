@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // 🚫 Bỏ qua filter cho các API public hoặc swagger
+        // Bỏ qua filter cho các API public hoặc swagger
         if (isPublicPath(path)) {
             filterChain.doFilter(request, response);
             return;
@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        // ⚠️ Nếu không có token → cho qua để Spring Security xử lý tiếp
+        // Nếu không có token → cho qua để Spring Security xử lý tiếp
         if (header == null || !header.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -62,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // ✅ Đặt Authentication vào context
+                // Đặt Authentication vào context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path) {
-        // 🔧 Chỉ định rõ API nào của notification-service là public (nếu có)
+        // Chỉ định rõ API nào của notification-service là public (nếu có)
         return path.startsWith("/api/notifications/public")  // ← sửa đúng service hiện tại
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")

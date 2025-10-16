@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/payments") // ✅ chỉ /payments (Gateway đã có /api/payments)
+@RequestMapping("/payments") // chỉ /payments (Gateway đã có /api/payments)
 public class PaymentController {
 
     private final PaymentRepository paymentRepository;
