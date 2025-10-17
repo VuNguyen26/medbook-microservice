@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints (swagger + test)
                         .requestMatchers(
                                 "/appointments/public/**",
                                 "/v3/api-docs/**",
@@ -39,11 +40,17 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+                        // Cho phép bệnh nhân đặt lịch
+                        .requestMatchers(HttpMethod.POST, "/appointments/**").hasRole("PATIENT")
+
+                        // Cho phép bác sĩ hoặc admin cập nhật / xóa
                         .requestMatchers(HttpMethod.PUT, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+
+                        // Cho phép tất cả các role có thể xem lịch (GET)
                         .requestMatchers(HttpMethod.GET, "/appointments/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
 
+                        // Các request khác yêu cầu xác thực
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
