@@ -74,4 +74,12 @@ public class AppointmentController {
         AppointmentResponse response = service.getAppointmentWithDoctor(id);
         return ResponseEntity.ok(response);
     }
+
+    // NEW: Lấy đầy đủ thông tin (appointment + doctor + patient)
+    @GetMapping("/{id}/with-full-info")
+    public ResponseEntity<AppointmentResponse> getAppointmentWithFullInfo(@PathVariable Long id) {
+        AppointmentResponse response = service.getAppointmentWithFullInfo(id);
+        return ResponseEntity.ok(response);
+    }
+
 }
