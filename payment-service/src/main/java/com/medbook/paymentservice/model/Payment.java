@@ -27,4 +27,6 @@ public class Payment {
     private PaymentStatus status;
 
     private LocalDateTime transactionTime = LocalDateTime.now();
+    private String transactionCode;
+    private String note;
 }
