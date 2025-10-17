@@ -34,15 +34,40 @@ public class AppointmentService {
     }
 
     // Lấy lịch hẹn kèm thông tin bệnh nhân
+    // Lấy lịch hẹn kèm thông tin bệnh nhân (có JWT)
     public AppointmentResponse getAppointmentWithPatient(Long id) {
         Appointment appointment = getAppointmentById(id);
 
-        // Gọi sang patient-service (qua Gateway)
-        String url = "http://localhost:8080/api/patients/" + appointment.getPatientId();
-        PatientResponse patient = restTemplate.getForObject(url, PatientResponse.class);
+        // Lấy token từ request hiện tại
+        HttpServletRequest currentRequest =
+                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String authHeader = currentRequest.getHeader("Authorization");
+        System.out.println("[AppointmentService] Calling patient-service with token: " + authHeader);
 
-        return new AppointmentResponse(appointment, patient);
+        // Gắn token vào header khi gọi sang patient-service
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authHeader);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        // Gọi sang patient-service qua GATEWAY (đảm bảo đi qua cổng 8080)
+        String url = "http://localhost:8080/api/patients/" + appointment.getPatientId();
+
+        ResponseEntity<PatientResponse> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                PatientResponse.class
+        );
+
+        PatientResponse patient = response.getBody();
+
+        AppointmentResponse result = new AppointmentResponse();
+        result.setAppointment(appointment);
+        result.setPatient(patient);
+
+        return result;
     }
+
 
     // Lấy lịch hẹn kèm thông tin bác sĩ (truyền JWT token)
     public AppointmentResponse getAppointmentWithDoctor(Long id) {
@@ -77,6 +102,50 @@ public class AppointmentService {
 
         return result;
     }
+
+    // Lấy lịch hẹn kèm đầy đủ thông tin bác sĩ và bệnh nhân
+    public AppointmentResponse getAppointmentWithFullInfo(Long id) {
+        Appointment appointment = getAppointmentById(id);
+
+        // Lấy token từ request hiện tại
+        HttpServletRequest currentRequest =
+                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String authHeader = currentRequest.getHeader("Authorization");
+
+        // Gắn token vào header
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authHeader);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        // Gọi sang doctor-service
+        String doctorUrl = "http://localhost:8080/api/doctors/" + appointment.getDoctorId();
+        ResponseEntity<DoctorResponse> doctorResponse = restTemplate.exchange(
+                doctorUrl,
+                HttpMethod.GET,
+                entity,
+                DoctorResponse.class
+        );
+        DoctorResponse doctor = doctorResponse.getBody();
+
+        // Gọi sang patient-service
+        String patientUrl = "http://localhost:8080/api/patients/" + appointment.getPatientId();
+        ResponseEntity<PatientResponse> patientResponse = restTemplate.exchange(
+                patientUrl,
+                HttpMethod.GET,
+                entity,
+                PatientResponse.class
+        );
+        PatientResponse patient = patientResponse.getBody();
+
+        // Kết hợp kết quả
+        AppointmentResponse result = new AppointmentResponse();
+        result.setAppointment(appointment);
+        result.setDoctor(doctor);
+        result.setPatient(patient);
+
+        return result;
+    }
+
 
     // Tạo lịch hẹn mới
     public Appointment createAppointment(Appointment appointment) {
