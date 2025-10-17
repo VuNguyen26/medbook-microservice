@@ -21,27 +21,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Vô hiệu hóa CSRF vì microservice không dùng session
+                // ❌ Tắt CSRF vì service không dùng session
                 .csrf(csrf -> csrf.disable())
 
-                // Cấu hình stateless (chỉ xác thực bằng JWT)
+                // 🔹 Stateless session (JWT-only)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Quy định quyền truy cập
+                // 🔹 Quy định quyền truy cập
                 .authorizeHttpRequests(auth -> auth
-                        // Các API public hoặc swagger không cần JWT
+                        // ✅ Các endpoint PUBLIC không cần JWT
                         .requestMatchers(
-                                "/api/notifications/public/**",
+                                "/notifications/public/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Các API còn lại cần xác thực JWT
+                        // ✅ Các endpoint còn lại yêu cầu JWT
                         .anyRequest().authenticated()
                 )
 
-                // Gắn filter JWT trước UsernamePasswordAuthenticationFilter
+                // 🔹 Thêm JWT filter vào pipeline
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
