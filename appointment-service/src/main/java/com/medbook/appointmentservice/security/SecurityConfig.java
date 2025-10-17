@@ -29,30 +29,37 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Tắt CSRF (chỉ dùng JWT)
                 .csrf(csrf -> csrf.disable())
+
+                // Stateless session – không lưu session server-side
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Quy tắc phân quyền
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints (swagger + test)
+                        // Cho phép public endpoint (Swagger + test)
                         .requestMatchers(
-                                "/appointments/public/**",
+                                "/api/appointments/public/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Cho phép bệnh nhân đặt lịch
-                        .requestMatchers(HttpMethod.POST, "/appointments/**").hasRole("PATIENT")
+                        // Cho phép bệnh nhân hoặc bác sĩ tạo lịch hẹn
+                        .requestMatchers(HttpMethod.POST, "/api/appointments/**").hasAnyRole("PATIENT", "DOCTOR")
 
-                        // Cho phép bác sĩ hoặc admin cập nhật / xóa
-                        .requestMatchers(HttpMethod.PUT, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+                        // Cho phép bác sĩ hoặc admin cập nhật / xóa lịch hẹn
+                        .requestMatchers(HttpMethod.PUT, "/api/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
 
-                        // Cho phép tất cả các role có thể xem lịch (GET)
-                        .requestMatchers(HttpMethod.GET, "/appointments/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+                        // Cho phép tất cả role (bác sĩ, bệnh nhân, admin) xem lịch hẹn
+                        .requestMatchers(HttpMethod.GET, "/api/appointments/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
 
-                        // Các request khác yêu cầu xác thực
+                        // Các request khác cần xác thực
                         .anyRequest().authenticated()
                 )
+
+                // Thêm filter JWT để kiểm tra token trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

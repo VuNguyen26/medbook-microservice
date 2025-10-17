@@ -190,4 +190,13 @@ public class AppointmentService {
     public List<Appointment> getAppointmentsByPatient(Integer patientId) {
         return repository.findByPatientId(patientId);
     }
+
+    // Cập nhật trạng thái thanh toán (PaymentService gọi sang)
+    public Appointment markAsPaid(Long id) {
+        Appointment appointment = getAppointmentById(id);
+        appointment.setPaymentStatus("PAID");
+        appointment.setPaid(true);
+        appointment.setStatus("CONFIRMED"); // tuỳ logic: có thể giữ nguyên, hoặc "COMPLETED"
+        return repository.save(appointment);
+    }
 }
