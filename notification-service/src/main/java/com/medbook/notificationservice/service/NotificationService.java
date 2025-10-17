@@ -12,22 +12,29 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository repository;
+    private final NotificationLogService logService;                // Ghi log lịch sử gửi
+    private final WebSocketNotificationService webSocketService;    // Gửi realtime
 
-    public NotificationService(NotificationRepository repository) {
+    // Constructor inject đầy đủ 3 service
+    public NotificationService(NotificationRepository repository,
+                               NotificationLogService logService,
+                               WebSocketNotificationService webSocketService) {
         this.repository = repository;
+        this.logService = logService;
+        this.webSocketService = webSocketService;
     }
 
-    // 🔹 Lấy tất cả thông báo (dành cho admin / test)
+    // Lấy tất cả thông báo (admin / test)
     public List<Notification> getAllNotifications() {
         return repository.findAll();
     }
 
-    // 🔹 Lấy thông báo của một user
+    // Lấy thông báo của một user
     public List<Notification> getNotificationsByUser(Long userId) {
         return repository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    // 🔹 Tạo thông báo mới (cho phép gọi từ các service khác)
+    // Tạo thông báo thủ công (gọi từ FE hoặc API)
     public Notification createNotification(Notification notification) {
         if (notification.getCreatedAt() == null) {
             notification.setCreatedAt(LocalDateTime.now());
@@ -35,23 +42,46 @@ public class NotificationService {
         if (notification.getType() == null) {
             notification.setType(NotificationType.SYSTEM);
         }
-        return repository.save(notification);
+        Notification saved = repository.save(notification);
+
+        // Ghi log gửi
+        logService.saveSendLog(notification.getUserId(), notification.getType().name(), true, null);
+
+        // Gửi realtime (nếu có WebSocket client)
+        webSocketService.sendToClient(saved);
+
+        return saved;
     }
 
-    // 🔹 Gửi thông báo tiện dụng (thường dùng khi Appointment/Payment gọi REST)
+    // Gửi thông báo tiện dụng (dùng khi Appointment/Payment gọi REST)
     public Notification sendNotification(Long userId, String title, String message, NotificationType type) {
-        Notification notif = Notification.builder()
-                .userId(userId)
-                .title(title)
-                .message(message)
-                .type(type)
-                .isRead(false)
-                .createdAt(LocalDateTime.now())
-                .build();
-        return repository.save(notif);
+        try {
+            Notification notif = Notification.builder()
+                    .userId(userId)
+                    .title(title)
+                    .message(message)
+                    .type(type)
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            Notification saved = repository.save(notif);
+
+            // Ghi log thành công
+            logService.saveSendLog(userId, type.name(), true, null);
+
+            // Đẩy realtime
+            webSocketService.sendToClient(saved);
+
+            return saved;
+        } catch (Exception e) {
+            // Nếu có lỗi thì ghi lại log fail
+            logService.saveSendLog(userId, type.name(), false, e.getMessage());
+            throw e;
+        }
     }
 
-    // 🔹 Đánh dấu đã đọc
+    // Đánh dấu đã đọc
     public Notification markAsRead(Long id) {
         Notification notif = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
@@ -59,7 +89,7 @@ public class NotificationService {
         return repository.save(notif);
     }
 
-    // 🔹 Xóa thông báo
+    // Xóa thông báo
     public void deleteNotification(Long id) {
         if (!repository.existsById(id)) {
             throw new RuntimeException("Notification not found with id: " + id);

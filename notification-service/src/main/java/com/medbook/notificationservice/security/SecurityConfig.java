@@ -21,15 +21,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ❌ Tắt CSRF vì service không dùng session
+                // Tắt CSRF vì service không dùng session
                 .csrf(csrf -> csrf.disable())
 
-                // 🔹 Stateless session (JWT-only)
+                // Stateless session (JWT-only)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 🔹 Quy định quyền truy cập
+                // Quy định quyền truy cập
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Các endpoint PUBLIC không cần JWT
+                        // Các endpoint PUBLIC không cần JWT
                         .requestMatchers(
                                 "/notifications/public/**",
                                 "/v3/api-docs/**",
@@ -37,11 +37,11 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // ✅ Các endpoint còn lại yêu cầu JWT
+                        // Các endpoint còn lại yêu cầu JWT
                         .anyRequest().authenticated()
                 )
 
-                // 🔹 Thêm JWT filter vào pipeline
+                // Thêm JWT filter vào pipeline
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
