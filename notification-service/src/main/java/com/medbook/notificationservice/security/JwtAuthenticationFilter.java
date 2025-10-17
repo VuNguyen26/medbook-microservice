@@ -74,11 +74,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path) {
-        // Chỉ định rõ API nào của notification-service là public (nếu có)
-        return path.startsWith("/api/notifications/public")  // ← sửa đúng service hiện tại
+        return path.startsWith("/notifications/public")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/")
                 || path.equals("/error");
     }
+
 }
