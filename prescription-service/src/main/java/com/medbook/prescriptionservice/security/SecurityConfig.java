@@ -13,7 +13,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Cấu hình bảo mật cho prescription-service
+ * 🔐 Security configuration for Prescription Service
+ * - Uses JWT authentication
+ * - Stateless (no session)
+ * - Swagger public
+ * - Role-based authorization
  */
 @Configuration
 @EnableWebSecurity
@@ -31,31 +35,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Vô hiệu hóa CSRF vì dùng JWT, không session
+                // Disable CSRF since using JWT
                 .csrf(csrf -> csrf.disable())
 
-                // Stateless session (mỗi request độc lập)
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Cấu hình quyền truy cập
-                .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập public + swagger
-                        .requestMatchers(
-                                "/prescriptions/public/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-
-                        // Cho phép mọi role hợp lệ trong token truy cập
-                        .anyRequest().hasAnyRole("DOCTOR", "PATIENT", "ADMIN")
-                )
-
-                // Tắt Basic Auth & Form Login
+                // Disable default login methods
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable())
 
-                // Thêm JWT filter
+                // Stateless: each request must have its own JWT
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 🛡Authorization rules
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints (Swagger + Healthcheck)
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/actuator/**"
+                        ).permitAll()
+
+                        // Nếu có public API trong service
+                        .requestMatchers("/prescriptions/public/**").permitAll()
+
+                        // Bác sĩ và admin có quyền tạo/sửa/xóa toa thuốc
+                        .requestMatchers("/prescriptions/**").hasAnyRole("DOCTOR", "ADMIN")
+
+                        // Bệnh nhân chỉ được xem toa thuốc của mình
+                        .requestMatchers("/prescriptions").hasAnyRole("DOCTOR", "PATIENT", "ADMIN")
+                        .anyRequest().authenticated()
+                )
+
+                // Add JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
