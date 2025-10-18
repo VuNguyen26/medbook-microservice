@@ -18,7 +18,7 @@ public class PrescriptionService {
 
     private final PrescriptionRepository repo;
 
-    // 🩺 Tạo mới toa thuốc
+    // Tạo mới toa thuốc
     @Transactional
     public PrescriptionResponse create(PrescriptionRequest req) {
         Prescription p = Prescription.builder()
@@ -34,14 +34,14 @@ public class PrescriptionService {
         return toDto(p);
     }
 
-    // 🔍 Lấy toa thuốc theo ID
+    // Lấy toa thuốc theo ID
     public PrescriptionResponse get(Long id) {
         return repo.findById(id)
                 .map(this::toDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found: " + id));
     }
 
-    // 📋 Lấy danh sách toa thuốc theo ID hồ sơ bệnh án
+    // Lấy danh sách toa thuốc theo ID hồ sơ bệnh án
     public List<PrescriptionResponse> byMedicalRecord(Long mrId) {
         return repo.findByMedicalRecordId(mrId)
                 .stream()
@@ -49,7 +49,7 @@ public class PrescriptionService {
                 .toList();
     }
 
-    // 🧍‍♀️ Lấy danh sách toa thuốc theo bệnh nhân
+    // Lấy danh sách toa thuốc theo bệnh nhân
     public List<PrescriptionResponse> byPatient(Long patientId) {
         return repo.findByPatientId(patientId)
                 .stream()
@@ -57,7 +57,7 @@ public class PrescriptionService {
                 .toList();
     }
 
-    // 👨‍⚕️ Lấy danh sách toa thuốc theo bác sĩ
+    // Lấy danh sách toa thuốc theo bác sĩ
     public List<PrescriptionResponse> byDoctor(Long doctorId) {
         return repo.findByDoctorId(doctorId)
                 .stream()
@@ -65,7 +65,7 @@ public class PrescriptionService {
                 .toList();
     }
 
-    // 📚 Lấy tất cả toa thuốc
+    // Lấy tất cả toa thuốc
     public List<PrescriptionResponse> getAll() {
         return repo.findAll()
                 .stream()
@@ -73,7 +73,7 @@ public class PrescriptionService {
                 .toList();
     }
 
-    // ⚙️ Cập nhật trạng thái toa thuốc
+    // Cập nhật trạng thái toa thuốc
     @Transactional
     public PrescriptionResponse updateStatus(Long id, String status) {
         Prescription p = repo.findById(id)
@@ -82,7 +82,7 @@ public class PrescriptionService {
         return toDto(repo.save(p));
     }
 
-    // ❌ Xóa toa thuốc
+    // Xóa toa thuốc
     @Transactional
     public void delete(Long id) {
         if (!repo.existsById(id)) {
@@ -91,7 +91,7 @@ public class PrescriptionService {
         repo.deleteById(id);
     }
 
-    // 🔄 Chuyển entity -> DTO
+    // Chuyển entity -> DTO
     private PrescriptionResponse toDto(Prescription p) {
         return new PrescriptionResponse(
                 p.getId(),
