@@ -1,22 +1,20 @@
 server:
   port: 8088
-  # Xóa phần context-path, để gateway tự định tuyến
-  # servlet:
-  #   context-path: /api/notifications
 
 spring:
   application:
     name: notification-service
 
+  # ===================== DATABASE CONFIG =====================
   datasource:
-    url: jdbc:mysql://localhost:3306/medbook_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://localhost:3306/medbook_notificationdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update        # dev: update | prod: validate
     show-sql: true
     properties:
       hibernate:
@@ -27,10 +25,12 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+# ===================== JWT CONFIG =====================
 jwt:
   secret: thisIsASecretKeyForJWTMedBookProject12345
   expiration: 86400000
 
+# ===================== EUREKA CONFIG =====================
 eureka:
   client:
     register-with-eureka: true
@@ -38,8 +38,13 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
+# ===================== LOGGING CONFIG =====================
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.medbook.notificationservice: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"

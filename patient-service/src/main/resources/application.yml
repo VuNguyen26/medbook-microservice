@@ -6,31 +6,30 @@ spring:
     name: patient-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/medbook_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://localhost:3306/medbook_patientdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
-    password: 123456        # thay bằng mật khẩu thật (hoặc "" nếu không có)
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update       # dev: update | prod: validate
+      ddl-auto: update        # dev: update | prod: validate
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
   jackson:
     serialization:
-      write-dates-as-timestamps: false  # để trả JSON ngày/giờ đẹp, không bị timestamp
+      write-dates-as-timestamps: false
 
-# JWT cấu hình (thêm phần này)
+# ===================== JWT CONFIG =====================
 jwt:
-  # Dùng chung secret key với user-service và doctor-service
-  # Key phải đủ dài (tối thiểu 32 ký tự)
-  secret: "thisIsASecretKeyForJWTMedBookProject12345"
+  secret: thisIsASecretKeyForJWTMedBookProject12345
+  expiration: 86400000
 
-# Eureka Client
+# ===================== EUREKA CONFIG =====================
 eureka:
   client:
     register-with-eureka: true
@@ -38,11 +37,11 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-# Logging
+# ===================== LOGGING CONFIG =====================
 logging:
   level:
-    org.springframework.web: INFO
-    org.springframework.security: DEBUG        # <== Thêm dòng này
-    com.medbook.patientservice.security: DEBUG # <== Thêm dòng này
+    root: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.medbook.patientservice: DEBUG
-
