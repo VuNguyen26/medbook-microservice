@@ -1,5 +1,6 @@
 package com.medbook.user.controller;
 
+import com.medbook.user.model.RegisterDTO;
 import com.medbook.user.model.Role;
 import com.medbook.user.model.User;
 import com.medbook.user.repository.UserRepository;
@@ -22,6 +23,13 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+
+    @PostMapping("/register2")
+    public ResponseEntity<String> register2(@RequestBody RegisterDTO dto){
+        System.out.println(dto);
+
+        return ResponseEntity.ok("Đăng ký thành công");
+    }
 
     // =================== REGISTER ===================
     @PostMapping("/register")

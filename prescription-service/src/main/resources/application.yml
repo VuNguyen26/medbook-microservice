@@ -5,43 +5,57 @@ spring:
   application:
     name: prescription-service
 
+  # ===================== DATABASE CONFIG =====================
   datasource:
-    url: jdbc:mysql://localhost:3306/prescription_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://localhost:3306/medbook_prescriptiondb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
-    show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: update           # dev: update | prod: validate
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect   # Chuẩn hóa theo hệ thống
         use_sql_comments: true
-        dialect: org.hibernate.dialect.MySQLDialect
 
   jackson:
     serialization:
       write-dates-as-timestamps: false
 
+# ===================== JWT CONFIG =====================
 jwt:
   secret: thisIsASecretKeyForJWTMedBookProject12345
-  expiration: 86400000 # 1 ngày (mili-giây)
+  expiration: 86400000   # 1 ngày (ms)
 
+# ===================== EUREKA CONFIG =====================
 eureka:
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
-    fetch-registry: true
-    register-with-eureka: true
 
+# ===================== MANAGEMENT =====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# ===================== LOGGING CONFIG =====================
 logging:
   level:
     root: INFO
-    org.springframework.web: INFO
-    org.springframework.boot.autoconfigure: INFO
-    com.medbook.prescriptionservice: DEBUG
-    com.medbook.prescriptionservice.security: DEBUG
+    org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.medbook.prescriptionservice: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"

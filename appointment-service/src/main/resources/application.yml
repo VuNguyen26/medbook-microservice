@@ -6,7 +6,7 @@ spring:
     name: appointment-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/medbook_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://localhost:3306/medbook_appointmentdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
