@@ -1,0 +1,34 @@
+# ======== STAGE 1: BUILD JAR =========
+FROM maven:3.9.8-eclipse-temurin-21 AS builder
+# Làm việc trong thư mục /app
+WORKDIR /app
+# Copy parent pom.xml từ root project
+COPY pom.xml .
+# Copy pom.xml và src của doctor-service
+COPY doctor-service/pom.xml doctor-service/pom.xml
+COPY doctor-service/src doctor-service/src
+# (Tuỳ chọn) Copy cấu hình Maven mirror để build ổn định và tải nhanh hơn
+COPY ./settings.xml /root/.m2/settings.xml
+# Build module doctor-service
+RUN mvn -B -f doctor-service/pom.xml clean package -DskipTests \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+
+# ======== STAGE 2: RUNTIME =========
+FROM eclipse-temurin:21-jre-jammy
+# Đặt timezone Việt Nam để log đúng giờ
+ENV TZ=Asia/Ho_Chi_Minh
+# Làm việc trong /app
+WORKDIR /app
+# Copy file jar từ builder stage
+COPY --from=builder /app/doctor-service/target/*.jar app.jar
+# Tối ưu bộ nhớ & Garbage Collector
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+               -XX:MaxRAMPercentage=70.0 \
+               -XX:+UseG1GC \
+               -XX:+UseStringDeduplication \
+               -XX:+HeapDumpOnOutOfMemoryError"
+# Chạy Spring Boot với profile docker
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.profiles.active=docker"]
+# Mở port cho doctor-service
+EXPOSE 8082

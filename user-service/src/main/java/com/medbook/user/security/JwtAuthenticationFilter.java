@@ -66,10 +66,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Cho phép request đi tiếp
         filterChain.doFilter(request, response);
     }
-
-    // Các đường dẫn public
+    // Các đường dẫn public (không yêu cầu JWT)
     private boolean isPublicPath(String path) {
-        return path.startsWith("/api/auth/")   // login, register
+        return path.startsWith("/api/auth/")
+                || path.startsWith("/auth/")
+                || path.startsWith("/api/users/register")
+                || path.startsWith("/api/users/login")
+                || path.startsWith("/users/register")
+                || path.startsWith("/users/login")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/error")

@@ -1,0 +1,541 @@
+# =========================
+# MEDBOOK MICROSERVICE SYSTEM (STABLE VERSION)
+# =========================
+services:
+  # =========================
+  # EUREKA DISCOVERY SERVER
+  # =========================
+  discovery-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.discovery
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+    # =========================
+  # USER DATABASE
+  # =========================
+  user-db:
+    image: mysql:8.0.33
+    container_name: user-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_userdb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3307:3306"
+    volumes:
+      # Lưu trữ dữ liệu MySQL
+      - user_data:/var/lib/mysql
+      # Tự động chạy file init.sql khi container tạo lần đầu
+      - ./user-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # USER SERVICE
+  # =========================
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      user-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://user-db:3306/medbook_userdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # DOCTOR DATABASE
+  # =========================
+  doctor-db:
+    image: mysql:8.0.33
+    container_name: doctor-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_doctordb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3308:3306"
+    volumes:
+      - doctor_data:/var/lib/mysql
+      - ./doctor-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # DOCTOR SERVICE
+  # =========================
+  doctor-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.doctor
+    container_name: doctor-service
+    ports:
+      - "8082:8082"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      doctor-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://doctor-db:3306/medbook_doctordb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # APPOINTMENT DATABASE
+  # =========================
+  appointment-db:
+    image: mysql:8.0.33
+    container_name: appointment-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_appointmentdb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3309:3306"
+    volumes:
+      - appointment_data:/var/lib/mysql
+      - ./appointment-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # APPOINTMENT SERVICE
+  # =========================
+  appointment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.appointment
+    container_name: appointment-service
+    ports:
+      - "8083:8083"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      appointment-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://appointment-db:3306/medbook_appointmentdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # MEDICAL RECORD DATABASE
+  # =========================
+  medicalrecord-db:
+    image: mysql:8.0.33
+    container_name: medicalrecord-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_medicalrecorddb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3310:3306"
+    volumes:
+      - medicalrecord_data:/var/lib/mysql
+      - ./medicalrecord-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # MEDICAL RECORD SERVICE
+  # =========================
+  medicalrecord-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.medicalrecord
+    container_name: medicalrecord-service
+    ports:
+      - "8084:8084"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      medicalrecord-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://medicalrecord-db:3306/medbook_medicalrecorddb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # PAYMENT DATABASE
+  # =========================
+  payment-db:
+    image: mysql:8.0.33
+    container_name: payment-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_paymentdb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3311:3306"
+    volumes:
+      - payment_data:/var/lib/mysql
+      - ./payment-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # PAYMENT SERVICE
+  # =========================
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.payment
+    container_name: payment-service
+    ports:
+      - "8085:8085"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      payment-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://payment-db:3306/medbook_paymentdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # NOTIFICATION DATABASE
+  # =========================
+  notification-db:
+    image: mysql:8.0.33
+    container_name: notification-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_notificationdb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3312:3306"
+    volumes:
+      - notification_data:/var/lib/mysql
+      - ./notification-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # NOTIFICATION SERVICE
+  # =========================
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.notification
+    container_name: notification-service
+    ports:
+      - "8086:8086"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      notification-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://notification-db:3306/medbook_notificationdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # PRESCRIPTION DATABASE
+  # =========================
+  prescription-db:
+    image: mysql:8.0.33
+    container_name: prescription-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_prescriptiondb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3313:3306"
+    volumes:
+      - prescription_data:/var/lib/mysql
+      - ./prescription-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # PRESCRIPTION SERVICE
+  # =========================
+  prescription-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.prescription
+    container_name: prescription-service
+    ports:
+      - "8087:8087"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      prescription-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://prescription-db:3306/medbook_prescriptiondb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # PATIENT DATABASE
+  # =========================
+  patient-db:
+    image: mysql:8.0.33
+    container_name: patient-db
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: medbook_patientdb
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3314:3306"
+    volumes:
+      - patient_data:/var/lib/mysql
+      - ./patient-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - medbook-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  # =========================
+  # PATIENT SERVICE
+  # =========================
+  patient-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.patient
+    container_name: patient-service
+    ports:
+      - "8089:8089"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      patient-db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://patient-db:3306/medbook_patientdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  # =========================
+  # API GATEWAY
+  # =========================
+  gateway-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      doctor-service:
+        condition: service_healthy
+      appointment-service:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+      medicalrecord-service:
+        condition: service_healthy
+      prescription-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED=true
+      - SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_LOWERCASE-SERVICE-ID=true
+    networks:
+      - medbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+# =========================
+# NETWORKS & VOLUMES
+# =========================
+networks:
+  medbook-network:
+
+volumes:
+  user_data:
+  doctor_data:
+  appointment_data:
+  payment_data:
+  prescription_data:
+  medicalrecord_data:
+  notification_data:
+  patient_data:

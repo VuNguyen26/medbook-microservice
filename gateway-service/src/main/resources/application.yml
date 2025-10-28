@@ -7,19 +7,13 @@ spring:
 
   cloud:
     gateway:
-      # Giữ lại header Authorization và Host khi forward qua các service
       default-filters:
-        - PreserveHostHeader=true
+        - PreserveHostHeader
         - RemoveRequestHeader=Cookie
-        # Cú pháp chuẩn cho Spring Cloud Gateway 2024 / Boot 3.5
-        - name: AddRequestHeader
-          args:
-            name: Authorization
-            value: "#{request.headers.Authorization}"
+        - TokenRelay
         - AddResponseHeader=Access-Control-Allow-Origin, *
 
       routes:
-        # AUTH (LOGIN / REGISTER)
         - id: user-auth
           uri: lb://user-service
           predicates:
@@ -27,7 +21,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # USER SERVICE
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -35,7 +28,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # DOCTOR SERVICE
         - id: doctor-service
           uri: lb://doctor-service
           predicates:
@@ -43,7 +35,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # APPOINTMENT SERVICE
         - id: appointment-service
           uri: lb://appointment-service
           predicates:
@@ -51,7 +42,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # PATIENT SERVICE
         - id: patient-service
           uri: lb://patient-service
           predicates:
@@ -59,7 +49,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # PAYMENT SERVICE
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -67,7 +56,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # MEDICAL RECORD SERVICE
         - id: medicalrecord-service
           uri: lb://medicalrecord-service
           predicates:
@@ -75,7 +63,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # PRESCRIPTION SERVICE
         - id: prescription-service
           uri: lb://prescription-service
           predicates:
@@ -83,7 +70,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # NOTIFICATION SERVICE
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -91,13 +77,11 @@ spring:
           filters:
             - StripPrefix=1
 
-      # Cho phép tự động phát hiện service từ Eureka
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
 
-      # Cấu hình CORS toàn cục
       globalcors:
         cors-configurations:
           '[/**]':
@@ -105,15 +89,15 @@ spring:
             allowed-methods: "*"
             allowed-headers: "*"
 
-# Eureka Client
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://discovery-service:8761/eureka/
+  instance:
+    prefer-ip-address: true
 
-# Actuator health & info
 management:
   endpoints:
     web:
@@ -123,7 +107,6 @@ management:
     health:
       show-details: always
 
-# Logging
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG

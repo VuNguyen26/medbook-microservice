@@ -1,0 +1,34 @@
+# ======== STAGE 1: BUILD JAR =========
+FROM maven:3.9.8-eclipse-temurin-21 AS builder
+# Làm việc trong thư mục /app
+WORKDIR /app
+# Copy parent pom.xml từ root project
+COPY pom.xml .
+# Copy pom.xml và src của payment-service
+COPY payment-service/pom.xml payment-service/pom.xml
+COPY payment-service/src payment-service/src
+# (Tùy chọn) Copy file cấu hình Maven mirror để tải nhanh hơn
+COPY ./settings.xml /root/.m2/settings.xml
+# Build module con
+RUN mvn -B -f payment-service/pom.xml clean package -DskipTests \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
+    -Dmaven.wagon.http.retryHandler.count=5
+
+# ======== STAGE 2: RUNTIME =========
+FROM eclipse-temurin:21-jre-jammy
+# Đặt timezone Việt Nam để log đúng giờ
+ENV TZ=Asia/Ho_Chi_Minh
+# Làm việc trong /app
+WORKDIR /app
+# Copy file jar từ builder stage
+COPY --from=builder /app/payment-service/target/*.jar app.jar
+# Giới hạn bộ nhớ & tối ưu GC
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+               -XX:MaxRAMPercentage=70.0 \
+               -XX:+UseG1GC \
+               -XX:+UseStringDeduplication \
+               -XX:+HeapDumpOnOutOfMemoryError"
+# Chạy Spring Boot với profile docker
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.profiles.active=docker"]
+# Mở port cho payment-service
+EXPOSE 8085
