@@ -1,13 +1,12 @@
 server:
-  port: 8081
+  port: 8085
 
 spring:
   application:
-    name: user-service
+    name: payment-service
 
   datasource:
-    # Dùng service name thay vì localhost
-    url: jdbc:mysql://user-db:3306/medbook_userdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://payment-db:3306/medbook_paymentdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,24 +20,23 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-# ===================== JWT CONFIG =====================
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
 jwt:
   secret: thisIsASecretKeyForJWTMedBookProject12345
   expiration: 86400000
 
-# ===================== EUREKA CLIENT =====================
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      # Dùng biến môi trường từ docker-compose
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+      defaultZone: http://discovery-service:8761/eureka/
   instance:
     prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
 
-# ===================== MANAGEMENT =====================
 management:
   endpoints:
     web:
@@ -48,10 +46,12 @@ management:
     health:
       show-details: always
 
-# ===================== LOGGING =====================
 logging:
   level:
     root: INFO
-    org.springframework.web: INFO
+    org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
-    com.medbook.user: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.medbook.paymentservice: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"

@@ -115,11 +115,21 @@
     <!-- Plugin build -->
     <build>
         <plugins>
+            <!-- Plugin Spring Boot: tạo file jar có Main-Class để chạy được bằng java -jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.5.6</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
+            <!-- Compiler Plugin để build Java 21 + hỗ trợ Lombok -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -127,11 +137,9 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
-
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
-
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -141,7 +149,6 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
