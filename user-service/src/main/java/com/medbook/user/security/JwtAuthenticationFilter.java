@@ -33,8 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // Bỏ qua filter cho các endpoint public (login, register, swagger, error)
-        if (isPublicPath(path)) {
+        // Bỏ qua JWT check cho các endpoint public + preflight OPTIONS
+        if (isPublicPath(path) || "OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         String username = jwtUtil.extractUsername(token);
 
-        // Xác thực người dùng
+        // Xác thực người dùng nếu token hợp lệ
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
@@ -57,8 +57,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities());
-
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
@@ -66,17 +66,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Cho phép request đi tiếp
         filterChain.doFilter(request, response);
     }
-    // Các đường dẫn public (không yêu cầu JWT)
+
+    // Danh sách endpoint public (không yêu cầu JWT)
     private boolean isPublicPath(String path) {
-        return path.startsWith("/api/auth/")
-                || path.startsWith("/auth/")
-                || path.startsWith("/api/users/register")
-                || path.startsWith("/api/users/login")
+        return path.startsWith("/auth/")
+                || path.startsWith("/api/auth/")   // Gateway -> StripPrefix=1 nên có thể rơi vào /auth/**
                 || path.startsWith("/users/register")
                 || path.startsWith("/users/login")
+                || path.startsWith("/api/users/register")
+                || path.startsWith("/api/users/login")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
-                || path.equals("/error")
-                || path.equals("/");
+                || path.equals("/")
+                || path.equals("/error");
     }
 }

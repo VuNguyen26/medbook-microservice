@@ -14,11 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -32,52 +27,47 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Bật CORS thay vì disable (Gateway sẽ forward header Access-Control-Allow-Origin)
+                .cors(cors -> {}) // <--- Sửa ở đây
+
+                // Tắt CSRF vì dùng JWT
                 .csrf(csrf -> csrf.disable())
 
-                // chỉ định dùng custom UserDetailsService
+                // Gắn CustomUserDetailsService
                 .userDetailsService(customUserDetailsService)
 
+                // Cho phép các API công khai
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/api/users/register",
-                                "/api/users/login",
+                                "/auth/**",
+                                "/api/auth/**",
                                 "/users/register",
                                 "/users/login",
-                                "/api/auth/**",
-                                "/auth/**",
+                                "/api/users/register",
+                                "/api/users/login",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/actuator/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
 
+                // Stateless session (JWT)
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Thêm JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
-
-    @Bean
     public PasswordEncoder passwordEncoder() {
-        // Dòng quan trọng để tương thích hash $2a$ trong MySQL
-        return new BCryptPasswordEncoder(org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2A);
+        return new BCryptPasswordEncoder(
+                org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2A
+        );
     }
 
     @Bean
