@@ -140,3 +140,7 @@ logging:
     org.springframework.web: DEBUG
     reactor.netty.http.client: WARN
     reactor.netty.http.server: DEBUG
+
+# ===================== JWT =====================
+jwt:
+  secret: my-very-secret-key-1234567890

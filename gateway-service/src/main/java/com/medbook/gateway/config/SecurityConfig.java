@@ -21,23 +21,23 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .cors(Customizer.withDefaults()) // bật CORS filter
+                .cors(Customizer.withDefaults())
                 .authorizeExchange(exchanges -> exchanges
-                        // Cho phép preflight
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Public routes
-                        .pathMatchers("/api/auth/**", "/auth/**", "/actuator/**").permitAll()
-                        // Các route khác có thể cấu hình sau
-                        .anyExchange().permitAll()
+                        .pathMatchers("/api/auth/**", "/actuator/**").permitAll()
+                        .anyExchange().authenticated()
                 )
                 .build();
     }
 
-    // Cấu hình CORS chi tiết
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173")); // FE admin & client
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://host.docker.internal:5173"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
