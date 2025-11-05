@@ -11,9 +11,9 @@ spring:
         - PreserveHostHeader
         - RemoveRequestHeader=Cookie
         - TokenRelay
-        - AddResponseHeader=Access-Control-Allow-Origin, *
 
       routes:
+        # Route cho Auth (đăng ký / đăng nhập)
         - id: user-auth
           uri: lb://user-service
           predicates:
@@ -21,6 +21,8 @@ spring:
           filters:
             - StripPrefix=1
 
+
+        # Route cho User Service
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -28,6 +30,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Route cho Doctor Service
         - id: doctor-service
           uri: lb://doctor-service
           predicates:
@@ -35,6 +38,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Route cho Appointment Service
         - id: appointment-service
           uri: lb://appointment-service
           predicates:
@@ -42,6 +46,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Route cho Patient Service
         - id: patient-service
           uri: lb://patient-service
           predicates:
@@ -49,6 +54,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Route cho Payment Service
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -56,6 +62,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Route cho Medical Record Service
         - id: medicalrecord-service
           uri: lb://medicalrecord-service
           predicates:
@@ -63,6 +70,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Route cho Prescription Service
         - id: prescription-service
           uri: lb://prescription-service
           predicates:
@@ -70,6 +78,7 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Route cho Notification Service
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -82,13 +91,29 @@ spring:
           enabled: true
           lower-case-service-id: true
 
+      # CORS chuẩn
       globalcors:
-        cors-configurations:
+        corsConfigurations:
           '[/**]':
-            allowed-origins: "*"
-            allowed-methods: "*"
-            allowed-headers: "*"
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "http://localhost:5174"
+              - "http://172.18.0.1:5173"
+              - "http://host.docker.internal:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - "*"
+            allowCredentials: true
 
+# ===================== EUREKA =====================
 eureka:
   client:
     register-with-eureka: true
@@ -98,6 +123,7 @@ eureka:
   instance:
     prefer-ip-address: true
 
+# ===================== ACTUATOR =====================
 management:
   endpoints:
     web:
@@ -107,7 +133,10 @@ management:
     health:
       show-details: always
 
+# ===================== LOGGING =====================
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
     reactor.netty.http.client: WARN
+    reactor.netty.http.server: DEBUG
