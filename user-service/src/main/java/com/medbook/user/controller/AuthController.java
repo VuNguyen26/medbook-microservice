@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,19 +23,12 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    @PostMapping("/register2")
-    public ResponseEntity<String> register2(@RequestBody RegisterDTO dto){
-        System.out.println(dto);
-
-        return ResponseEntity.ok("Đăng ký thành công");
-    }
-
     // =================== REGISTER ===================
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Email already exists!"));
+                    .body(Map.of("message", "Email đã tồn tại!"));
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -45,7 +37,7 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
-                        "message", "User registered successfully",
+                        "message", "Đăng ký thành công!",
                         "email", user.getEmail(),
                         "role", user.getRole().name()
                 ));
@@ -58,39 +50,40 @@ public class AuthController {
         if (userOpt.isEmpty()) {
             System.out.println("Không tìm thấy email: " + loginRequest.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid email or password"));
+                    .body(Map.of("message", "Sai email hoặc mật khẩu!"));
         }
 
         User user = userOpt.get();
 
-        // Thêm debug
-        System.out.println("Email tìm thấy: " + user.getEmail());
-        System.out.println("Password nhập vào: " + loginRequest.getPassword());
-        System.out.println("Password trong DB: " + user.getPassword());
-        System.out.println("Kết quả so khớp: " + passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()));
+        boolean match = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
+        System.out.println("Email: " + user.getEmail());
+        System.out.println("Mật khẩu nhập: " + loginRequest.getPassword());
+        System.out.println("Hash DB: " + user.getPassword());
+        System.out.println("Kết quả so khớp: " + match);
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (!match) {
+            // Sai mật khẩu
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid email or password"));
+                    .body(Map.of("message", "Sai email hoặc mật khẩu!"));
         }
 
+        // Tạo JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
         return ResponseEntity.ok(Map.of(
                 "token", token,
                 "email", user.getEmail(),
                 "role", user.getRole().name(),
-                "message", "Login successful"
+                "message", "Đăng nhập thành công!"
         ));
     }
-
 
     // =================== CHECK TOKEN ===================
     @GetMapping("/check")
     public ResponseEntity<?> checkToken(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Missing token"));
+                    .body(Map.of("message", "Thiếu token xác thực!"));
         }
 
         String token = authHeader.substring(7);
@@ -99,9 +92,13 @@ public class AuthController {
 
         if (email == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid token"));
+                    .body(Map.of("message", "Token không hợp lệ!"));
         }
 
-        return ResponseEntity.ok(Map.of("email", email, "role", role, "valid", true));
+        return ResponseEntity.ok(Map.of(
+                "email", email,
+                "role", role,
+                "valid", true
+        ));
     }
 }
