@@ -5,6 +5,48 @@ spring:
   application:
     name: gateway-service
 
+  main:
+    web-application-type: reactive
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 168813281269-8hbq5u1tj4te9ggkdmmplsnj2d366fjs.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            client-name: Google
+            provider: google
+
+          facebook:
+            client-id: 870450995314624
+            client-secret: 35430ff00ba428a71521fe90ec9937fe
+            scope:
+              - email
+              - public_profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/facebook"
+            client-name: Facebook
+            provider: facebook
+
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+          facebook:
+            # API mới nhất (v19.0) + yêu cầu trường email, name, picture
+            authorization-uri: https://www.facebook.com/v19.0/dialog/oauth
+            token-uri: https://graph.facebook.com/v19.0/oauth/access_token
+            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
+            user-name-attribute: email
+
   cloud:
     gateway:
       default-filters:
@@ -13,7 +55,7 @@ spring:
         - TokenRelay
 
       routes:
-        # Route cho Auth (đăng ký / đăng nhập)
+        # ========== Auth Service ==========
         - id: user-auth
           uri: lb://user-service
           predicates:
@@ -21,8 +63,7 @@ spring:
           filters:
             - StripPrefix=1
 
-
-        # Route cho User Service
+        # ========== User Service ==========
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -30,7 +71,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Route cho Doctor Service
+        # ========== Doctor Service ==========
         - id: doctor-service
           uri: lb://doctor-service
           predicates:
@@ -38,7 +79,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Route cho Appointment Service
+        # ========== Appointment Service ==========
         - id: appointment-service
           uri: lb://appointment-service
           predicates:
@@ -46,7 +87,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Route cho Patient Service
+        # ========== Patient Service ==========
         - id: patient-service
           uri: lb://patient-service
           predicates:
@@ -54,7 +95,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Route cho Payment Service
+        # ========== Payment Service ==========
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -62,7 +103,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Route cho Medical Record Service
+        # ========== Medical Record Service ==========
         - id: medicalrecord-service
           uri: lb://medicalrecord-service
           predicates:
@@ -70,7 +111,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Route cho Prescription Service
+        # ========== Prescription Service ==========
         - id: prescription-service
           uri: lb://prescription-service
           predicates:
@@ -78,7 +119,7 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Route cho Notification Service
+        # ========== Notification Service ==========
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -91,7 +132,7 @@ spring:
           enabled: true
           lower-case-service-id: true
 
-      # CORS chuẩn
+      # Cấu hình CORS toàn cục cho React FE
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -141,6 +182,6 @@ logging:
     reactor.netty.http.client: WARN
     reactor.netty.http.server: DEBUG
 
-# ===================== JWT =====================
+# ===================== JWT SECRET =====================
 jwt:
   secret: my-very-secret-key-1234567890

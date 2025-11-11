@@ -108,6 +108,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- OAuth2 Client (để dùng OAuth2User và AuthenticationPrincipal) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+
     </dependencies>
 
     <!-- Quản lý version Spring Cloud -->
