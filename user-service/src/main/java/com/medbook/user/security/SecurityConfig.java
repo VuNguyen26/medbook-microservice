@@ -27,16 +27,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Bật CORS thay vì disable (Gateway sẽ forward header Access-Control-Allow-Origin)
-                .cors(cors -> {}) // <--- Sửa ở đây
+                // Cho phép CORS (Gateway forward header)
+                .cors(cors -> {})
 
                 // Tắt CSRF vì dùng JWT
                 .csrf(csrf -> csrf.disable())
 
-                // Gắn CustomUserDetailsService
+                // Sử dụng CustomUserDetailsService
                 .userDetailsService(customUserDetailsService)
 
-                // Cho phép các API công khai
+                // Phân quyền API
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
@@ -49,12 +49,13 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/actuator/**"
+                                "/actuator/**",
+                                "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
 
-                // Stateless session (JWT)
+                // Stateless session cho JWT
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // Thêm JWT filter

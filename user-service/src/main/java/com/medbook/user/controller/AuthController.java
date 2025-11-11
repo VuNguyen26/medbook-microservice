@@ -1,11 +1,11 @@
 package com.medbook.user.controller;
 
-import com.medbook.user.model.RegisterDTO;
 import com.medbook.user.model.Role;
 import com.medbook.user.model.User;
 import com.medbook.user.repository.UserRepository;
 import com.medbook.user.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,9 +14,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * AuthController - xử lý đăng ký, đăng nhập, xác thực JWT, và đồng bộ OAuth2
+ * Gateway gọi /auth/oauth2/sync sau khi user đăng nhập thành công qua Google/Facebook
+ */
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -26,6 +31,8 @@ public class AuthController {
     // =================== REGISTER ===================
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
+        log.info("Register request: {}", user.getEmail());
+
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "Email đã tồn tại!"));
@@ -46,28 +53,22 @@ public class AuthController {
     // =================== LOGIN ===================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginRequest) {
+        log.info("Login request: {}", loginRequest.getEmail());
+
         Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
         if (userOpt.isEmpty()) {
-            System.out.println("Không tìm thấy email: " + loginRequest.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Sai email hoặc mật khẩu!"));
         }
 
         User user = userOpt.get();
 
-        boolean match = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
-        System.out.println("Email: " + user.getEmail());
-        System.out.println("Mật khẩu nhập: " + loginRequest.getPassword());
-        System.out.println("Hash DB: " + user.getPassword());
-        System.out.println("Kết quả so khớp: " + match);
-
-        if (!match) {
-            // Sai mật khẩu
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Sai email hoặc mật khẩu!"));
         }
 
-        // Tạo JWT token
+        // Sinh JWT
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
         return ResponseEntity.ok(Map.of(
@@ -80,7 +81,7 @@ public class AuthController {
 
     // =================== CHECK TOKEN ===================
     @GetMapping("/check")
-    public ResponseEntity<?> checkToken(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> checkToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Thiếu token xác thực!"));
@@ -100,5 +101,42 @@ public class AuthController {
                 "role", role,
                 "valid", true
         ));
+    }
+
+    // =================== OAUTH2 SYNC (Gateway gọi nội bộ) ===================
+    /**
+     * Được Gateway gọi sau khi OAuth2 login thành công.
+     * Payload: { "email": "...", "name": "..." }
+     * Trả về: Chuỗi token JWT đơn giản (để Gateway redirect)
+     */
+    @PostMapping("/oauth2/sync")
+    public ResponseEntity<String> oauth2Sync(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String name = payload.get("name");
+
+        log.info("OAuth2 sync: {}", email);
+
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Thiếu email từ OAuth2 Provider");
+        }
+
+        // Nếu chưa có user -> tạo mới
+        User user = userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setEmail(email);
+                    newUser.setName(name != null ? name : "Người dùng");
+                    newUser.setPassword(passwordEncoder.encode("OAUTH2_LOGIN"));
+                    newUser.setRole(Role.PATIENT);
+                    log.info("Tạo mới user OAuth2: {}", email);
+                    return userRepository.save(newUser);
+                });
+
+        // Sinh JWT trả về Gateway
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+
+        // ⚡ Trả về chuỗi token thuần túy
+        return ResponseEntity.ok(token);
     }
 }

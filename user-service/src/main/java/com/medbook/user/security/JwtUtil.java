@@ -6,24 +6,31 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * JWT Utility class
+ * - Đọc secret & expiration từ application.yml
+ * - Sinh / xác thực token cho User và OAuth2
+ */
 @Component
 public class JwtUtil {
 
-    // Đọc secret & expiration từ application.yml
+    // ===================== CONFIG =====================
     @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration:86400000}") // 1 ngày (ms)
+    @Value("${jwt.expiration:86400000}") // Mặc định 1 ngày (ms)
     private long expirationTime;
 
-    // ===================== NỘI BỘ =====================
+    // ===================== LẤY SIGNING KEY =====================
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     // ===================== TẠO TOKEN =====================
@@ -34,16 +41,19 @@ public class JwtUtil {
     }
 
     private String buildToken(Map<String, Object> claims, String subject) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expirationTime);
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .setIssuedAt(now)
+                .setExpiration(expiry)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // ===================== TRÍCH XUẤT DỮ LIỆU =====================
+    // ===================== GIẢI MÃ / TRÍCH XUẤT =====================
     public String extractUsername(String token) {
         try {
             return extractAllClaims(token).getSubject();
@@ -74,11 +84,18 @@ public class JwtUtil {
         return expiration.before(new Date());
     }
 
+    // ===================== TRÍCH XUẤT TOÀN BỘ CLAIM =====================
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            throw e;
+        } catch (JwtException e) {
+            throw new JwtException("Invalid JWT token: " + e.getMessage());
+        }
     }
 }

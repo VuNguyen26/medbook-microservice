@@ -70,7 +70,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // Danh sách endpoint public (không yêu cầu JWT)
     private boolean isPublicPath(String path) {
         return path.startsWith("/auth/")
-                || path.startsWith("/api/auth/")   // Gateway -> StripPrefix=1 nên có thể rơi vào /auth/**
+                || path.startsWith("/auth/oauth2/sync")
+                || path.startsWith("/api/auth/")
                 || path.startsWith("/users/register")
                 || path.startsWith("/users/login")
                 || path.startsWith("/api/users/register")
