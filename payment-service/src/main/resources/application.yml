@@ -27,8 +27,8 @@ spring:
 
 # ===================== JWT CONFIG =====================
 jwt:
-  secret: thisIsASecretKeyForJWTMedBookProject12345   # Khóa bí mật dùng chung toàn hệ thống
-  expiration: 86400000   # 1 ngày (ms)
+  secret: "XyP7rJd9TzQ2sKc5UeV1nRj4LwM8aHf3GzB6pLq9DkN2xYv8"
+  expiration: 86400000
 
 # ===================== EUREKA CONFIG =====================
 eureka:

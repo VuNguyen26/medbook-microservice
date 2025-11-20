@@ -184,4 +184,4 @@ logging:
 
 # ===================== JWT SECRET =====================
 jwt:
-  secret: my-very-secret-key-1234567890
+  secret: "XyP7rJd9TzQ2sKc5UeV1nRj4LwM8aHf3GzB6pLq9DkN2xYv8"

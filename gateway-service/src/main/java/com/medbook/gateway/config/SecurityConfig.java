@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -33,49 +34,52 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
-                                                         WebClient.Builder webClientBuilder) {
+    public AuthenticationFilter authenticationFilter(JwtUtil jwtUtil) {
+        return new AuthenticationFilter(jwtUtil);
+    }
+
+    @Bean
+    public SecurityWebFilterChain securityWebFilterChain(
+            ServerHttpSecurity http,
+            WebClient.Builder webClientBuilder,
+            AuthenticationFilter authenticationFilter // ✔ Inject filter
+    ) {
 
         String frontendRedirect = "http://localhost:5173/login/success";
         String frontendFailure = "http://localhost:5173/login?error=true";
 
-        // Xử lý khi đăng nhập OAuth2 thành công
+        // OAuth2 success handler
         ServerAuthenticationSuccessHandler successHandler = (exchange, authentication) -> {
-            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
-            String email = oauthUser.getAttribute("email");
-            String name = oauthUser.getAttribute("name");
+            OAuth2User user = (OAuth2User) authentication.getPrincipal();
+            String email = user.getAttribute("email");
+            String name  = user.getAttribute("name");
 
             System.out.println("OAuth2 success: " + email);
 
-            // Gọi user-service QUA EUREKA để sync user và tạo JWT
             return webClientBuilder.build()
                     .post()
                     .uri("lb://user-service/auth/oauth2/sync")
                     .bodyValue(Map.of("email", email, "name", name))
                     .retrieve()
-                    .bodyToMono(String.class) // user-service trả về chuỗi token
+                    .bodyToMono(String.class)
                     .flatMap(token -> {
                         if (token == null || token.isBlank()) {
-                            System.err.println("Không nhận được token từ user-service!");
                             exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
                             exchange.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
                             return exchange.getExchange().getResponse().setComplete();
                         }
 
-                        System.out.println("JWT từ user-service: " + token);
-
-                        // Redirect về FE cùng token + email + role
-                        String redirectUrl = frontendRedirect
-                                + "?token=" + token
-                                + "&email=" + email
-                                + "&role=PATIENT";
+                        String redirectUrl = frontendRedirect +
+                                "?token=" + token +
+                                "&email=" + email +
+                                "&role=PATIENT";
 
                         exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
                         exchange.getExchange().getResponse().getHeaders().setLocation(URI.create(redirectUrl));
                         return exchange.getExchange().getResponse().setComplete();
                     })
-                    .onErrorResume(err -> {
-                        System.err.println("OAuth2 Sync lỗi: " + err.getMessage());
+                    .onErrorResume(e -> {
+                        System.err.println("OAuth2 sync error: " + e.getMessage());
                         exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
                         exchange.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
                         return exchange.getExchange().getResponse().setComplete();
@@ -85,6 +89,10 @@ public class SecurityConfig {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(Customizer.withDefaults())
+
+                // ⭐ THÊM FILTER JWT VÀO CHUỖI BẢO MẬT ⭐
+                .addFilterAt(authenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+
                 .authorizeExchange(ex -> ex
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(
@@ -95,14 +103,16 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyExchange().authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2
+
+                .oauth2Login(oauth -> oauth
                         .authenticationSuccessHandler(successHandler)
-                        .authenticationFailureHandler((ex, e) -> {
-                            ex.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
-                            ex.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
+                        .authenticationFailureHandler((req, e) -> {
+                            req.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
+                            req.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
                             return Mono.empty();
                         })
                 )
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, e) -> {
                             req.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -124,15 +134,14 @@ public class SecurityConfig {
                 .build();
     }
 
-    // Cho phép FE gọi Gateway trong môi trường dev
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "http://host.docker.internal:5173",
-                "http://172.18.0.1:5173"
+                "http://172.18.0.1:5173",
+                "http://host.docker.internal:5173"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
@@ -140,6 +149,7 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 }

@@ -524,6 +524,77 @@ services:
       retries: 10
       start_period: 60s
 
+  # =========================
+  # AI SERVICE (PDF → Embedding → Qdrant)
+  # =========================
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile.aiservice
+    container_name: ai-service
+    ports:
+      - "8088:8089"
+    restart: always
+
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+
+    environment:
+
+      # ============================
+      # Eureka
+      # ============================
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+
+      # ============================
+      # Qdrant — CHUẨN CHO SPRING AI
+      # ============================
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6334
+      QDRANT_COLLECTION: medbook-ai
+
+      # ============================
+      # OPENROUTER
+      # ============================
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: https://openrouter.ai/api
+      OPENAI_HTTP_HEADERS: >
+        {
+          "HTTP-Referer": "http://localhost",
+          "X-Title": "MedBook AI Service"
+        }
+
+    networks:
+      - medbook-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+
+  # =========================
+  # QDRANT VECTOR DATABASE
+  # =========================
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: qdrant
+    ports:
+      - "6333:6333"             # HTTP API
+      - "6334:6334"             # gRPC API (BẮT BUỘC phải expose)
+    volumes:
+      - ./qdrant_data:/qdrant/storage
+      - ./qdrant_config/config.yaml:/qdrant/config/config.yaml
+    restart: always
+    networks:
+      - medbook-network
+
+
 # =========================
 # NETWORKS & VOLUMES
 # =========================

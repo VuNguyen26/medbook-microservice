@@ -21,7 +21,7 @@ ENV TZ=Asia/Ho_Chi_Minh
 # Làm việc trong /app
 WORKDIR /app
 # Copy file JAR từ builder stage
-COPY --from=builder /app/appointment-service/target/*.jar app.jar
+COPY --from=builder /app/appointment-service/target/appointment-service-0.0.1-SNAPSHOT.jar app.jar
 # Tối ưu bộ nhớ & Garbage Collector
 ENV JAVA_OPTS="-XX:+UseContainerSupport \
                -XX:MaxRAMPercentage=70.0 \

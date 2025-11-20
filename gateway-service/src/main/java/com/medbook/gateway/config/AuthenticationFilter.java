@@ -1,33 +1,47 @@
 package com.medbook.gateway.config;
 
 import io.jsonwebtoken.Claims;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
 public class AuthenticationFilter implements WebFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+
+    public AuthenticationFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        // Bỏ qua các route public (auth, actuator)
-        if (path.contains("/api/auth") || path.contains("/actuator")) {
+        System.out.println(">>> JWT Filter Activated: " + path);
+
+        // Allow public routes
+        if (path.startsWith("/api/auth")
+                || path.startsWith("/actuator")
+                || path.startsWith("/login")
+                || path.startsWith("/oauth2")) {
             return chain.filter(exchange);
         }
 
-        // Lấy Authorization header
+        // Check Authorization header
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -35,15 +49,28 @@ public class AuthenticationFilter implements WebFilter {
         }
 
         String token = authHeader.substring(7);
-        if (!jwtUtil.isTokenValid(token)) {
+
+        Claims claims;
+        try {
+            claims = jwtUtil.extractAllClaims(token);
+        } catch (Exception e) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
 
-        // In ra log để kiểm tra
-        Claims claims = jwtUtil.extractAllClaims(token);
-        System.out.println("Authenticated User: " + claims.getSubject() + " | Role: " + claims.get("role"));
+        // Extract username and role
+        String username = claims.getSubject();
+        String role = (String) claims.get("role");
 
-        return chain.filter(exchange);
+        var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+
+        Authentication auth =
+                new UsernamePasswordAuthenticationToken(username, null, authorities);
+
+        System.out.println(">>> Authenticated User = " + username + " | Role = " + role);
+
+        // Attach Authentication vào SecurityContext
+        return chain.filter(exchange)
+                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
     }
 }

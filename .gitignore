@@ -1,17 +1,76 @@
-# IntelliJ IDEA
+# ===============================
+# IDE / Editor
+# ===============================
 .idea/
 *.iml
+*.ipr
+*.iws
 
-# Maven build
+# VSCode
+.vscode/
+
+# ===============================
+# Build Outputs
+# ===============================
 target/
 */target/
+build/
+*/build/
 
+# ===============================
 # Logs
+# ===============================
 *.log
+logs/
+*/logs/
 
+# ===============================
 # OS-specific
+# ===============================
 .DS_Store
 Thumbs.db
 
-# Environment configs
+# ===============================
+# Environment Variables (Important)
+# ===============================
+.env
 *.env
+.env.*
+!env.example
+!example.env
+
+# ===============================
+# Spring Boot configs to ignore
+# ===============================
+application-docker.yml
+application-prod.yml
+application-local.yml
+*/application-docker.yml
+*/application-prod.yml
+*/application-local.yml
+
+# ===============================
+# Docker / Compose / Storage
+# ===============================
+qdrant_data/
+qdrant_storage/
+*.pid
+
+# ===============================
+# DB files / Temporary data
+# ===============================
+*.sql
+*.sqlite
+*.db
+*/db/*.sql
+*/db/*.json
+*/db/data/
+
+# ===============================
+# Node / Frontend (nếu có)
+# ===============================
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+.next/
