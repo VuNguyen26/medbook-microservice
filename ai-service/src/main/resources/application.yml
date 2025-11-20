@@ -1,0 +1,57 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: ai-service
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  ai:
+    openai:
+      base-url: https://openrouter.ai/api
+      api-key: ${OPENAI_API_KEY}
+
+      chat:
+        options:
+          model: meta-llama/llama-3.3-70b-instruct:free
+
+      embedding:
+        options:
+          model: text-embedding-3-large
+
+    vectorstore:
+      qdrant:
+        host: ${QDRANT_HOST:qdrant}
+        port: ${QDRANT_PORT:6334}
+        grpc-enabled: true
+        collection-name: ${QDRANT_COLLECTION:medbook-ai}
+        distance: COSINE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://discovery-service:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com.medbook.aiservice: DEBUG
