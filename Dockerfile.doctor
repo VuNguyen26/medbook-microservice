@@ -1,34 +1,53 @@
-# ======== STAGE 1: BUILD JAR =========
+# ============================
+# STAGE 1 — BUILD JAR
+# ============================
 FROM maven:3.9.8-eclipse-temurin-21 AS builder
-# Làm việc trong thư mục /app
+
 WORKDIR /app
-# Copy parent pom.xml từ root project
+
 COPY pom.xml .
-# Copy pom.xml và src của doctor-service
 COPY doctor-service/pom.xml doctor-service/pom.xml
 COPY doctor-service/src doctor-service/src
-# (Tuỳ chọn) Copy cấu hình Maven mirror để build ổn định và tải nhanh hơn
 COPY ./settings.xml /root/.m2/settings.xml
-# Build module doctor-service
+
 RUN mvn -B -f doctor-service/pom.xml clean package -DskipTests \
     -Dmaven.wagon.http.retryHandler.count=5 \
     -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
 
-# ======== STAGE 2: RUNTIME =========
+
+# ============================
+# STAGE 2 — RUNTIME
+# ============================
 FROM eclipse-temurin:21-jre-jammy
-# Đặt timezone Việt Nam để log đúng giờ
+
+# ---------------------------------------------
+# FIX LỖI TIẾNG VIỆT — CẤU HÌNH LOCALE UTF-8
+# ---------------------------------------------
+RUN apt-get update && apt-get install -y locales && \
+    locale-gen vi_VN.UTF-8 && \
+    update-locale LANG=vi_VN.UTF-8
+
+ENV LANG=vi_VN.UTF-8
+ENV LANGUAGE=vi_VN:vi
+ENV LC_ALL=vi_VN.UTF-8
+
+# ÉP JVM & Spring dùng UTF-8
+ENV JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8"
+
+# Timezone VN
 ENV TZ=Asia/Ho_Chi_Minh
-# Làm việc trong /app
+
 WORKDIR /app
-# Copy file jar từ builder stage
+
 COPY --from=builder /app/doctor-service/target/*.jar app.jar
-# Tối ưu bộ nhớ & Garbage Collector
+
 ENV JAVA_OPTS="-XX:+UseContainerSupport \
                -XX:MaxRAMPercentage=70.0 \
                -XX:+UseG1GC \
                -XX:+UseStringDeduplication \
                -XX:+HeapDumpOnOutOfMemoryError"
-# Chạy Spring Boot với profile docker
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.profiles.active=docker"]
-# Mở port cho doctor-service
+
+# Không dùng profile docker → Dùng application.yml gốc
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+
 EXPOSE 8082

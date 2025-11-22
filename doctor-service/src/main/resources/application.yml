@@ -5,9 +5,14 @@ spring:
   application:
     name: doctor-service
 
-  # ===================== DATABASE CONFIG =====================
   datasource:
-    url: jdbc:mysql://doctor-db:3306/medbook_doctordb?useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://doctor-db:3306/medbook_doctordb?
+      useUnicode=true&
+      characterEncoding=utf8mb4&
+      connectionCollation=utf8mb4_unicode_ci&
+      useSSL=false&
+      allowPublicKeyRetrieval=true&
+      serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,19 +26,29 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
-  # ✅ Thêm đoạn này để Spring Boot luôn trả JSON đúng UTF-8
   servlet:
     encoding:
-      charset: UTF-8
       enabled: true
       force: true
+      charset: UTF-8
 
-# ===================== JWT CONFIG =====================
+  http:
+    encoding:
+      enabled: true
+      force: true
+      charset: UTF-8
+
+  mvc:
+    locale: vi_VN
+    locale-resolver: fixed
+
+  messages:
+    encoding: UTF-8
+
 jwt:
   secret: "XyP7rJd9TzQ2sKc5UeV1nRj4LwM8aHf3GzB6pLq9DkN2xYv8"
   expiration: 86400000
 
-# ===================== EUREKA CLIENT =====================
 eureka:
   client:
     register-with-eureka: true
@@ -44,7 +59,6 @@ eureka:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
-# ===================== ACTUATOR (HEALTH CHECK) =====================
 management:
   endpoints:
     web:
@@ -54,7 +68,6 @@ management:
     health:
       show-details: always
 
-# ===================== LOGGING CONFIG =====================
 logging:
   level:
     root: INFO

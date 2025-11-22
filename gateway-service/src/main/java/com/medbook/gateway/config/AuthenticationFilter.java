@@ -33,16 +33,27 @@ public class AuthenticationFilter implements WebFilter {
 
         System.out.println(">>> JWT Filter Activated: " + path);
 
-        // Allow public routes
-        if (path.startsWith("/api/auth")
-                || path.startsWith("/actuator")
-                || path.startsWith("/login")
-                || path.startsWith("/oauth2")) {
-            return chain.filter(exchange);
+        // ⭐ PUBLIC PATTERNS (DÙNG REGEX ĐỂ MATCH CHÍNH XÁC MỌI TRƯỜNG HỢP)
+        String[] PUBLIC_PATTERNS = {
+                "^/api/doctors(/.*)?$",
+                "^/api/specialties(/.*)?$",
+                "^/api/auth(/.*)?$",
+                "^/login(/.*)?$",
+                "^/oauth2(/.*)?$",
+                "^/actuator(/.*)?$"
+        };
+
+        // ⭐ Nếu path match PUBLIC → BỎ QUA JWT FILTER ⭐
+        for (String pattern : PUBLIC_PATTERNS) {
+            if (path.matches(pattern)) {
+                System.out.println(">>> PUBLIC MATCHED: " + pattern);
+                return chain.filter(exchange);
+            }
         }
 
-        // Check Authorization header
+        // ⭐ Các route dưới đây yêu cầu JWT ⭐
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
@@ -58,7 +69,6 @@ public class AuthenticationFilter implements WebFilter {
             return exchange.getResponse().setComplete();
         }
 
-        // Extract username and role
         String username = claims.getSubject();
         String role = (String) claims.get("role");
 
@@ -69,7 +79,6 @@ public class AuthenticationFilter implements WebFilter {
 
         System.out.println(">>> Authenticated User = " + username + " | Role = " + role);
 
-        // Attach Authentication vào SecurityContext
         return chain.filter(exchange)
                 .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
     }

@@ -42,19 +42,17 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(
             ServerHttpSecurity http,
             WebClient.Builder webClientBuilder,
-            AuthenticationFilter authenticationFilter // ✔ Inject filter
+            AuthenticationFilter authenticationFilter
     ) {
 
         String frontendRedirect = "http://localhost:5173/login/success";
         String frontendFailure = "http://localhost:5173/login?error=true";
 
-        // OAuth2 success handler
+        // OAuth2 success callback
         ServerAuthenticationSuccessHandler successHandler = (exchange, authentication) -> {
             OAuth2User user = (OAuth2User) authentication.getPrincipal();
             String email = user.getAttribute("email");
             String name  = user.getAttribute("name");
-
-            System.out.println("OAuth2 success: " + email);
 
             return webClientBuilder.build()
                     .post()
@@ -63,12 +61,6 @@ public class SecurityConfig {
                     .retrieve()
                     .bodyToMono(String.class)
                     .flatMap(token -> {
-                        if (token == null || token.isBlank()) {
-                            exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
-                            exchange.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
-                            return exchange.getExchange().getResponse().setComplete();
-                        }
-
                         String redirectUrl = frontendRedirect +
                                 "?token=" + token +
                                 "&email=" + email +
@@ -79,7 +71,6 @@ public class SecurityConfig {
                         return exchange.getExchange().getResponse().setComplete();
                     })
                     .onErrorResume(e -> {
-                        System.err.println("OAuth2 sync error: " + e.getMessage());
                         exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
                         exchange.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
                         return exchange.getExchange().getResponse().setComplete();
@@ -88,19 +79,24 @@ public class SecurityConfig {
 
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .cors(Customizer.withDefaults())
 
-                // ⭐ THÊM FILTER JWT VÀO CHUỖI BẢO MẬT ⭐
-                .addFilterAt(authenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                // ⭐ ĐÚNG – JWT FILTER CHẠY SAU CORS, TRƯỚC AUTHORIZATION
+                .addFilterBefore(authenticationFilter, SecurityWebFiltersOrder.AUTHORIZATION)
 
                 .authorizeExchange(ex -> ex
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // ⭐ PUBLIC ROUTES – CHO FE GỌI KHÔNG CẦN TOKEN
                         .pathMatchers(
+                                "/api/doctors/**",
+                                "/api/specialties/**",
                                 "/api/auth/**",
-                                "/actuator/**",
                                 "/login/**",
-                                "/oauth2/**"
+                                "/oauth2/**",
+                                "/actuator/**"
                         ).permitAll()
+
+                        // Các API khác cần token
                         .anyExchange().authenticated()
                 )
 
@@ -138,18 +134,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "http://172.18.0.1:5173",
-                "http://host.docker.internal:5173"
+                "http://localhost:5173"
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 }

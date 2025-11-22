@@ -28,7 +28,12 @@ services:
   user-db:
     image: mysql:8.0.33
     container_name: user-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_userdb
@@ -87,7 +92,12 @@ services:
   doctor-db:
     image: mysql:8.0.33
     container_name: doctor-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_doctordb
@@ -97,11 +107,12 @@ services:
     volumes:
       - doctor_data:/var/lib/mysql
       - ./doctor-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./doctor-service/db/my.cnf:/etc/mysql/conf.d/my.cnf:ro
     networks:
       - medbook-network
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -125,7 +136,7 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:mysql://doctor-db:3306/medbook_doctordb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+      - SPRING_DATASOURCE_URL=jdbc:mysql://doctor-db:3306/medbook_doctordb?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&connectionCollation=utf8mb4_unicode_ci&serverTimezone=Asia/Ho_Chi_Minh
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=123456
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
@@ -144,7 +155,12 @@ services:
   appointment-db:
     image: mysql:8.0.33
     container_name: appointment-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_appointmentdb
@@ -201,7 +217,12 @@ services:
   medicalrecord-db:
     image: mysql:8.0.33
     container_name: medicalrecord-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_medicalrecorddb
@@ -258,7 +279,12 @@ services:
   payment-db:
     image: mysql:8.0.33
     container_name: payment-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_paymentdb
@@ -315,7 +341,12 @@ services:
   notification-db:
     image: mysql:8.0.33
     container_name: notification-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_notificationdb
@@ -372,7 +403,12 @@ services:
   prescription-db:
     image: mysql:8.0.33
     container_name: prescription-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_prescriptiondb
@@ -429,7 +465,12 @@ services:
   patient-db:
     image: mysql:8.0.33
     container_name: patient-db
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+      --init-connect='SET NAMES utf8mb4'
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: medbook_patientdb
@@ -610,3 +651,4 @@ volumes:
   medicalrecord_data:
   notification_data:
   patient_data:
+

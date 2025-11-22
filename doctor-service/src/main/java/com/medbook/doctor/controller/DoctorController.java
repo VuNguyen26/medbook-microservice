@@ -5,38 +5,69 @@ import com.medbook.doctor.repository.DoctorRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/doctors")
-@CrossOrigin(origins = "*")
 public class DoctorController {
 
     private final DoctorRepository repository;
+
+    // Map specialty_id -> tên chuyên khoa
+    private static final Map<Long, String> SPECIALTY_MAP = Map.of(
+            1L, "đa khoa",
+            2L, "phụ khoa",
+            3L, "da liễu",
+            4L, "nhi",
+            5L, "thần kinh",
+            6L, "tiêu hóa"
+    );
 
     public DoctorController(DoctorRepository repository) {
         this.repository = repository;
     }
 
-    // 🔹 Lấy tất cả bác sĩ
+    // =============== GET ALL / FILTER BY SPECIALTY ==================
+
     @GetMapping
-    public List<Doctor> getAllDoctors() {
-        return repository.findAll();
+    public List<Doctor> getDoctors(
+            @RequestParam(value = "specialty_id", required = false) Long specialtyId
+    ) {
+
+        List<Doctor> doctors = repository.findAll();
+
+        if (specialtyId == null) {
+            return doctors;
+        }
+
+        String specName = SPECIALTY_MAP.get(specialtyId);
+        if (specName == null) {
+            return List.of();
+        }
+
+        return doctors.stream()
+                .filter(d -> specName.equalsIgnoreCase(d.getSpecialty()))
+                .collect(Collectors.toList());
     }
 
-    // 🔹 Lấy bác sĩ theo ID
+    // =============== GET BY ID ==================
+
     @GetMapping("/{id}")
     public Doctor getDoctorById(@PathVariable Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
     }
 
-    // 🔹 Thêm bác sĩ mới
+    // =============== ADD ==================
+
     @PostMapping
     public Doctor addDoctor(@RequestBody Doctor doctor) {
         return repository.save(doctor);
     }
 
-    // 🔹 Cập nhật bác sĩ theo ID
+    // =============== UPDATE ==================
+
     @PutMapping("/{id}")
     public Doctor updateDoctor(@PathVariable Long id, @RequestBody Doctor updatedDoctor) {
         return repository.findById(id)
@@ -55,7 +86,8 @@ public class DoctorController {
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
     }
 
-    // 🔹 Xóa bác sĩ theo ID
+    // =============== DELETE ==================
+
     @DeleteMapping("/{id}")
     public String deleteDoctor(@PathVariable Long id) {
         if (!repository.existsById(id)) {
@@ -65,7 +97,6 @@ public class DoctorController {
         return "Doctor with id " + id + " has been deleted successfully.";
     }
 
-    // 🔹 Kiểm tra service hoạt động
     @GetMapping("/test")
     public String test() {
         return "Doctor service is working!";

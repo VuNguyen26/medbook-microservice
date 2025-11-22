@@ -5,6 +5,19 @@ spring:
   application:
     name: gateway-service
 
+  http:
+    encoding:
+      enabled: true
+      charset: UTF-8
+      force: true
+
+  mvc:
+    locale: vi_VN
+    charset: UTF-8
+
+  messages:
+    encoding: UTF-8
+
   main:
     web-application-type: reactive
 
