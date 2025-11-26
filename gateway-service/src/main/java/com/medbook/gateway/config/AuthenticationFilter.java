@@ -31,27 +31,38 @@ public class AuthenticationFilter implements WebFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        System.out.println(">>> JWT Filter Activated: " + path);
+        // ============================================================
+        // QR CHECKIN PUBLIC: (trước StripPrefix)  /api/appointments/{id}/qr
+        // QR CHECKIN PUBLIC: (sau StripPrefix)   /appointments/{id}/qr
+        // ============================================================
+        if (path.matches("^/appointments/\\d+/qr$") ||
+                path.matches("^/api/appointments/\\d+/qr$")) {
 
-        // ⭐ PUBLIC PATTERNS (DÙNG REGEX ĐỂ MATCH CHÍNH XÁC MỌI TRƯỜNG HỢP)
+            System.out.println(">>> PUBLIC QR (skip JWT): " + path);
+            return chain.filter(exchange);
+        }
+
+        //  Public routes không yêu cầu JWT
         String[] PUBLIC_PATTERNS = {
                 "^/api/doctors(/.*)?$",
                 "^/api/specialties(/.*)?$",
                 "^/api/auth(/.*)?$",
                 "^/login(/.*)?$",
                 "^/oauth2(/.*)?$",
-                "^/actuator(/.*)?$"
+                "^/actuator(/.*)?$",
+                "^/api/appointments/slots(/.*)?$",
+                "^/api/payments/fake$",
+                "^/api/payments/fake(/.*)?$"
         };
 
-        // ⭐ Nếu path match PUBLIC → BỎ QUA JWT FILTER ⭐
         for (String pattern : PUBLIC_PATTERNS) {
             if (path.matches(pattern)) {
-                System.out.println(">>> PUBLIC MATCHED: " + pattern);
+                System.out.println(">>> PUBLIC ROUTE (skip JWT): " + path);
                 return chain.filter(exchange);
             }
         }
 
-        // ⭐ Các route dưới đây yêu cầu JWT ⭐
+        // Các API khác phải có JWT
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -72,14 +83,16 @@ public class AuthenticationFilter implements WebFilter {
         String username = claims.getSubject();
         String role = (String) claims.get("role");
 
-        var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(
+                        username,
+                        null,
+                        List.of(new SimpleGrantedAuthority(role))
+                );
 
-        Authentication auth =
-                new UsernamePasswordAuthenticationToken(username, null, authorities);
-
-        System.out.println(">>> Authenticated User = " + username + " | Role = " + role);
+        System.out.println(">>> JWT AUTHORIZED: " + username + " | ROLE = " + role);
 
         return chain.filter(exchange)
-                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
+                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
     }
 }

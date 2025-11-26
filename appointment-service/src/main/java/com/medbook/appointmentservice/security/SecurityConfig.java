@@ -28,38 +28,51 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-                // Tắt CSRF (chỉ dùng JWT)
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(sess ->
+                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-                // Stateless session – không lưu session server-side
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Quy tắc phân quyền
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép public endpoint (Swagger + test)
+
+                        // ===== PUBLIC APIS =====
                         .requestMatchers(
-                                "/api/appointments/public/**",
+                                "/appointments/public/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Cho phép bệnh nhân hoặc bác sĩ tạo lịch hẹn
-                        .requestMatchers(HttpMethod.POST, "/api/appointments/**").hasAnyRole("PATIENT", "DOCTOR")
+                        // ===== PUBLIC QR Check-in =====
+                        .requestMatchers(HttpMethod.GET, "/appointments/*/qr").permitAll()
 
-                        // Cho phép bác sĩ hoặc admin cập nhật / xóa lịch hẹn
-                        .requestMatchers(HttpMethod.PUT, "/api/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/appointments/**").hasAnyRole("DOCTOR", "ADMIN")
+                        // ===== PUBLIC SLOT =====
+                        .requestMatchers(HttpMethod.GET, "/appointments/slots/**").permitAll()
 
-                        // Cho phép tất cả role (bác sĩ, bệnh nhân, admin) xem lịch hẹn
-                        .requestMatchers(HttpMethod.GET, "/api/appointments/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+                        // ===== INTERNAL PAID CALLBACK (Payment Service) =====
+                        // Không yêu cầu JWT — đây là API nội bộ giữa microservices
+                        .requestMatchers(HttpMethod.PUT, "/appointments/*/paid").permitAll()
 
-                        // Các request khác cần xác thực
+                        // ===== CREATE APPOINTMENT =====
+                        .requestMatchers(HttpMethod.POST, "/appointments/**")
+                        .hasAnyRole("PATIENT", "DOCTOR")
+
+                        // ===== UPDATE / DELETE OTHER DATA =====
+                        .requestMatchers(HttpMethod.PUT, "/appointments/**")
+                        .hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/appointments/**")
+                        .hasAnyRole("DOCTOR", "ADMIN")
+
+                        // ===== GET APPOINTMENTS =====
+                        .requestMatchers(HttpMethod.GET, "/appointments/**")
+                        .hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+
+                        // ===== EVERYTHING ELSE =====
                         .anyRequest().authenticated()
                 )
 
-                // Thêm filter JWT để kiểm tra token trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

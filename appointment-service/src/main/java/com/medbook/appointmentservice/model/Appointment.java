@@ -3,7 +3,7 @@ package com.medbook.appointmentservice.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
@@ -19,9 +19,10 @@ public class Appointment {
     private Integer patientId;
     private Integer doctorId;
     private Integer serviceId;
-
-    private LocalDateTime appointmentDate;
+    private String patientEmail;
+    private LocalDate appointmentDate;
     private LocalTime appointmentTime;
+
     private String notes;
     private String status;
     private String paymentStatus;

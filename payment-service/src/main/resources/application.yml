@@ -5,30 +5,30 @@ spring:
   application:
     name: payment-service
 
-  # ===================== DATABASE CONFIG =====================
   datasource:
     url: jdbc:mysql://localhost:3306/medbook_paymentdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
     username: root
-    password: 123456         # Thay bằng mật khẩu thật của bạn nếu khác
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update       # dev: update | prod: validate
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect   # Giữ đồng nhất với các service khác
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
   jackson:
     serialization:
-      write-dates-as-timestamps: false   # Định dạng thời gian JSON dễ đọc (ISO)
+      write-dates-as-timestamps: false
 
 # ===================== JWT CONFIG =====================
 jwt:
   secret: "XyP7rJd9TzQ2sKc5UeV1nRj4LwM8aHf3GzB6pLq9DkN2xYv8"
   expiration: 86400000
+
 
 # ===================== EUREKA CONFIG =====================
 eureka:
@@ -53,8 +53,8 @@ logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG                        # Hiển thị câu SQL thực thi
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Hiển thị giá trị tham số SQL
-    com.medbook.paymentservice: DEBUG               # Log chi tiết riêng cho Payment Service
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.medbook.paymentservice: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n"

@@ -5,14 +5,21 @@ import com.medbook.appointmentservice.dto.PatientResponse;
 import com.medbook.appointmentservice.dto.DoctorResponse;
 import com.medbook.appointmentservice.model.Appointment;
 import com.medbook.appointmentservice.repository.AppointmentRepository;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,134 +27,98 @@ import java.util.List;
 public class AppointmentService {
 
     private final AppointmentRepository repository;
-    private final RestTemplate restTemplate; // Inject từ AppointmentServiceApplication
+    private final RestTemplate restTemplate;
 
-    // Lấy tất cả lịch hẹn
+    // ========================= CRUD =========================
     public List<Appointment> getAllAppointments() {
         return repository.findAll();
     }
 
-    // Lấy lịch hẹn theo ID (thuần)
     public Appointment getAppointmentById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found with ID: " + id));
     }
 
-    // Lấy lịch hẹn kèm thông tin bệnh nhân
-    // Lấy lịch hẹn kèm thông tin bệnh nhân (có JWT)
+    // ========================= APPOINTMENT + PATIENT =========================
     public AppointmentResponse getAppointmentWithPatient(Long id) {
         Appointment appointment = getAppointmentById(id);
 
-        // Lấy token từ request hiện tại
-        HttpServletRequest currentRequest =
+        HttpServletRequest request =
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String authHeader = currentRequest.getHeader("Authorization");
-        System.out.println("[AppointmentService] Calling patient-service with token: " + authHeader);
+        String token = request.getHeader("Authorization");
 
-        // Gắn token vào header khi gọi sang patient-service
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authHeader);
+        headers.set("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        // Gọi sang patient-service qua GATEWAY (đảm bảo đi qua cổng 8080)
         String url = "http://localhost:8080/api/patients/" + appointment.getPatientId();
 
-        ResponseEntity<PatientResponse> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                PatientResponse.class
+        ResponseEntity<PatientResponse> res = restTemplate.exchange(
+                url, HttpMethod.GET, entity, PatientResponse.class
         );
 
-        PatientResponse patient = response.getBody();
-
-        AppointmentResponse result = new AppointmentResponse();
-        result.setAppointment(appointment);
-        result.setPatient(patient);
-
-        return result;
+        AppointmentResponse output = new AppointmentResponse();
+        output.setAppointment(appointment);
+        output.setPatient(res.getBody());
+        return output;
     }
 
-
-    // Lấy lịch hẹn kèm thông tin bác sĩ (truyền JWT token)
+    // ========================= APPOINTMENT + DOCTOR =========================
     public AppointmentResponse getAppointmentWithDoctor(Long id) {
         Appointment appointment = getAppointmentById(id);
 
-        // Gọi sang doctor-service (qua Gateway)
-        String url = "http://localhost:8080/api/doctors/" + appointment.getDoctorId();
-
-        // Lấy token từ request hiện tại
-        HttpServletRequest currentRequest =
+        HttpServletRequest request =
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String authHeader = currentRequest.getHeader("Authorization");
-        System.out.println("[AppointmentService] Calling doctor-service with token: " + authHeader);
+        String token = request.getHeader("Authorization");
 
-
-        // Đính kèm Authorization header vào RestTemplate request
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authHeader);
+        headers.set("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<DoctorResponse> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                DoctorResponse.class
+        String url = "http://localhost:8080/api/doctors/" + appointment.getDoctorId();
+
+        ResponseEntity<DoctorResponse> res = restTemplate.exchange(
+                url, HttpMethod.GET, entity, DoctorResponse.class
         );
 
-        DoctorResponse doctor = response.getBody();
-        AppointmentResponse result = new AppointmentResponse();
-        result.setAppointment(appointment);
-        result.setDoctor(doctor);
-
-        return result;
+        AppointmentResponse output = new AppointmentResponse();
+        output.setAppointment(appointment);
+        output.setDoctor(res.getBody());
+        return output;
     }
 
-    // Lấy lịch hẹn kèm đầy đủ thông tin bác sĩ và bệnh nhân
+    // ========================= FULL INFO =========================
     public AppointmentResponse getAppointmentWithFullInfo(Long id) {
         Appointment appointment = getAppointmentById(id);
 
-        // Lấy token từ request hiện tại
-        HttpServletRequest currentRequest =
+        HttpServletRequest request =
                 ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String authHeader = currentRequest.getHeader("Authorization");
+        String token = request.getHeader("Authorization");
 
-        // Gắn token vào header
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authHeader);
+        headers.set("Authorization", token);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        // Gọi sang doctor-service
+        // Doctor
         String doctorUrl = "http://localhost:8080/api/doctors/" + appointment.getDoctorId();
-        ResponseEntity<DoctorResponse> doctorResponse = restTemplate.exchange(
-                doctorUrl,
-                HttpMethod.GET,
-                entity,
-                DoctorResponse.class
-        );
-        DoctorResponse doctor = doctorResponse.getBody();
+        DoctorResponse doctor = restTemplate.exchange(
+                doctorUrl, HttpMethod.GET, entity, DoctorResponse.class
+        ).getBody();
 
-        // Gọi sang patient-service
+        // Patient
         String patientUrl = "http://localhost:8080/api/patients/" + appointment.getPatientId();
-        ResponseEntity<PatientResponse> patientResponse = restTemplate.exchange(
-                patientUrl,
-                HttpMethod.GET,
-                entity,
-                PatientResponse.class
-        );
-        PatientResponse patient = patientResponse.getBody();
+        PatientResponse patient = restTemplate.exchange(
+                patientUrl, HttpMethod.GET, entity, PatientResponse.class
+        ).getBody();
 
-        // Kết hợp kết quả
-        AppointmentResponse result = new AppointmentResponse();
-        result.setAppointment(appointment);
-        result.setDoctor(doctor);
-        result.setPatient(patient);
-
-        return result;
+        AppointmentResponse output = new AppointmentResponse();
+        output.setAppointment(appointment);
+        output.setDoctor(doctor);
+        output.setPatient(patient);
+        return output;
     }
 
-
-    // Tạo lịch hẹn mới
+    // ========================= CREATE =========================
     public Appointment createAppointment(Appointment appointment) {
         if (appointment.getStatus() == null) appointment.setStatus("PENDING");
         if (appointment.getPaymentStatus() == null) appointment.setPaymentStatus("UNPAID");
@@ -155,7 +126,7 @@ public class AppointmentService {
         return repository.save(appointment);
     }
 
-    // Cập nhật lịch hẹn
+    // ========================= UPDATE =========================
     public Appointment updateAppointment(Long id, Appointment updated) {
         Appointment existing = getAppointmentById(id);
 
@@ -176,27 +147,80 @@ public class AppointmentService {
         return repository.save(existing);
     }
 
-    // Xóa lịch hẹn
+    // ========================= DELETE =========================
     public void deleteAppointment(Long id) {
         repository.deleteById(id);
     }
 
-    // Lấy lịch hẹn theo bác sĩ
+    // ========================= FILTER =========================
     public List<Appointment> getAppointmentsByDoctor(Integer doctorId) {
         return repository.findByDoctorId(doctorId);
     }
 
-    // Lấy lịch hẹn theo bệnh nhân
     public List<Appointment> getAppointmentsByPatient(Integer patientId) {
         return repository.findByPatientId(patientId);
     }
 
-    // Cập nhật trạng thái thanh toán (PaymentService gọi sang)
+    public List<Appointment> getAppointmentsByPatientEmail(String email) {
+        return repository.findByPatientEmail(email);
+    }
+
+    // ========================= PAYMENT =========================
     public Appointment markAsPaid(Long id) {
-        Appointment appointment = getAppointmentById(id);
-        appointment.setPaymentStatus("PAID");
-        appointment.setPaid(true);
-        appointment.setStatus("CONFIRMED"); // tuỳ logic: có thể giữ nguyên, hoặc "COMPLETED"
-        return repository.save(appointment);
+        Appointment a = getAppointmentById(id);
+        a.setPaymentStatus("PAID");
+        a.setPaid(true);
+        return repository.save(a);
+    }
+
+    // ===================================================================
+    // FULL FEATURE: TẠO KHUNG GIỜ TRỐNG (SÁNG – CHIỀU)
+    // ===================================================================
+    public List<AppointmentSlot> getAvailableSlots(Long doctorId, String date, int durationMinutes) {
+
+        LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // Fix giờ làm việc
+        LocalTime start = LocalTime.of(8, 0);
+        LocalTime end = LocalTime.of(18, 0);
+
+        Integer doctorIdInt = doctorId.intValue();
+
+        List<Appointment> existingAppointments =
+                repository.findByDoctorIdAndAppointmentDate(doctorIdInt, targetDate);
+
+        List<AppointmentSlot> result = new ArrayList<>();
+
+        LocalTime pointer = start;
+        while (pointer.plusMinutes(durationMinutes).isBefore(end.plusMinutes(1))) {
+
+            LocalTime slotStart = pointer;
+
+            boolean isTaken = existingAppointments.stream().anyMatch(a ->
+                    a.getAppointmentTime().equals(slotStart)
+            );
+
+            if (!isTaken) {
+                result.add(new AppointmentSlot(
+                        date + "T" + slotStart,
+                        true
+                ));
+            }
+
+            pointer = pointer.plusMinutes(30);
+        }
+
+        return result;
+    }
+
+    // ========================= SLOT DTO =========================
+    public static class AppointmentSlot {
+        public String start_at;
+        public boolean available;
+
+        public AppointmentSlot(String start_at, boolean available) {
+            this.start_at = start_at;
+            this.available = available;
+        }
     }
 }

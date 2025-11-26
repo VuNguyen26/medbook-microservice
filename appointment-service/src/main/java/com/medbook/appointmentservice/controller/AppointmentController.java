@@ -3,9 +3,13 @@ package com.medbook.appointmentservice.controller;
 import com.medbook.appointmentservice.model.Appointment;
 import com.medbook.appointmentservice.service.AppointmentService;
 import com.medbook.appointmentservice.dto.AppointmentResponse;
+import com.medbook.appointmentservice.service.QRService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+
+import java.util.Base64;
 import java.util.List;
 
 @RestController
@@ -14,6 +18,26 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService service;
+    private final QRService qrService;
+
+    // ========================= NEW: GET APPOINTMENTS OF LOGGED-IN USER =========================
+    @GetMapping("/my")
+    public ResponseEntity<List<Appointment>> getMyAppointments(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(service.getAppointmentsByPatientEmail(email));
+    }
+
+    // ========================= AVAILABLE TIME SLOTS =========================
+    @GetMapping("/slots")
+    public ResponseEntity<?> getAvailableSlots(
+            @RequestParam Long doctorId,
+            @RequestParam String date,
+            @RequestParam Integer duration
+    ) {
+        return ResponseEntity.ok(service.getAvailableSlots(doctorId, date, duration));
+    }
+
+    // ========================= BASIC CRUD =========================
 
     @GetMapping
     public ResponseEntity<List<Appointment>> getAllAppointments() {
@@ -26,7 +50,14 @@ public class AppointmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Appointment> createAppointment(@RequestBody Appointment appointment) {
+    public ResponseEntity<Appointment> createAppointment(
+            @RequestBody Appointment appointment,
+            Authentication authentication
+    ) {
+        // GẮN EMAIL USER VÀO APPOINTMENT
+        String email = authentication.getName();
+        appointment.setPatientEmail(email);
+
         Appointment created = service.createAppointment(appointment);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
@@ -43,6 +74,8 @@ public class AppointmentController {
         return ResponseEntity.noContent().build();
     }
 
+    // ========================= FILTER BY DOCTOR / PATIENT =========================
+
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<List<Appointment>> getByDoctor(@PathVariable Integer doctorId) {
         return ResponseEntity.ok(service.getAppointmentsByDoctor(doctorId));
@@ -53,6 +86,7 @@ public class AppointmentController {
         return ResponseEntity.ok(service.getAppointmentsByPatient(patientId));
     }
 
+    // ========================= EXTRA INFO =========================
     @GetMapping("/{id}/with-patient")
     public ResponseEntity<AppointmentResponse> getAppointmentWithPatient(@PathVariable Long id) {
         return ResponseEntity.ok(service.getAppointmentWithPatient(id));
@@ -68,10 +102,30 @@ public class AppointmentController {
         return ResponseEntity.ok(service.getAppointmentWithFullInfo(id));
     }
 
-    // Cập nhật trạng thái “PAID” từ PaymentService
+    // ========================= PAYMENT UPDATE =========================
     @PutMapping("/{id}/paid")
     public ResponseEntity<String> markAppointmentAsPaid(@PathVariable Long id) {
         service.markAsPaid(id);
         return ResponseEntity.ok("Appointment " + id + " marked as PAID");
+    }
+
+    // ========================= QR CODE =========================
+    @GetMapping("/{id}/qr")
+    public ResponseEntity<String> getAppointmentQR(@PathVariable Long id) {
+
+        Appointment appt = service.getAppointmentById(id);
+
+        String qrText = "APPT:" + appt.getId()
+                + "|DATE:" + appt.getAppointmentDate()
+                + "|TIME:" + appt.getAppointmentTime()
+                + "|DOCTOR:" + appt.getDoctorId()
+                + "|PATIENT_EMAIL:" + appt.getPatientEmail();
+
+        byte[] qrImage = qrService.generateQRCode(qrText);
+        String base64 = Base64.getEncoder().encodeToString(qrImage);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(base64);
     }
 }

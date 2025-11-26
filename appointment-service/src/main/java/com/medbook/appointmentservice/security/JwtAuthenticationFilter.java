@@ -33,8 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // Bỏ qua filter cho các API public hoặc Swagger
+        // Bỏ qua filter cho các API public
         if (isPublicPath(path)) {
+            log.debug("PUBLIC PATH (skip JWT): {}", path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -55,21 +56,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = claims.getSubject();
                 String role = jwtUtil.extractRole(token);
 
-                log.info("JWT ROLE EXTRACTED: {}", role);
+                log.info(">>> JWT OK | USER: {} | ROLE: {}", username, role);
 
                 List<SimpleGrantedAuthority> authorities =
                         (role != null)
                                 ? List.of(new SimpleGrantedAuthority("ROLE_" + role))
                                 : Collections.emptyList();
 
-                log.info("Granted authorities: {}", authorities);
-
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("Authenticated user: {} with role: {}", username, role);
             } else {
                 log.warn("Invalid or expired JWT token");
             }
@@ -82,10 +80,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path) {
-        return path.startsWith("/api/appointments/public")
+
+        // PUBLIC QR CHECKIN: /appointments/{id}/qr
+        if (path.startsWith("/appointments/") && path.endsWith("/qr")) {
+            return true;
+        }
+
+        return path.startsWith("/appointments/public")
+                || path.startsWith("/appointments/slots")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.equals("/")
-                || path.equals("/error");
+                || path.equals("/error")
+                || path.startsWith("/actuator");
     }
 }

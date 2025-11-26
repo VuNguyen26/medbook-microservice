@@ -54,7 +54,6 @@ spring:
             user-name-attribute: sub
 
           facebook:
-            # API mới nhất (v19.0) + yêu cầu trường email, name, picture
             authorization-uri: https://www.facebook.com/v19.0/dialog/oauth
             token-uri: https://graph.facebook.com/v19.0/oauth/access_token
             user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
@@ -68,7 +67,20 @@ spring:
         - TokenRelay
 
       routes:
-        # ========== Auth Service ==========
+
+        # ======================================================
+        # 🔥 QR CHECK-IN ROUTE (PUBLIC) — MUST BE FIRST!
+        # ======================================================
+        - id: appointment-qr
+          uri: lb://appointment-service
+          predicates:
+            - Path=/api/appointments/*/qr
+          filters:
+            - StripPrefix=1
+
+        # ======================================================
+        # 🔹 Auth Service
+        # ======================================================
         - id: user-auth
           uri: lb://user-service
           predicates:
@@ -76,7 +88,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== User Service ==========
+        # ======================================================
+        # 🔹 User Service
+        # ======================================================
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -84,7 +98,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== Doctor Service ==========
+        # ======================================================
+        # 🔹 Doctor Service
+        # ======================================================
         - id: doctor-service
           uri: lb://doctor-service
           predicates:
@@ -92,7 +108,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== Appointment Service ==========
+        # ======================================================
+        # 🔥 Appointment Service (all except QR)
+        # ======================================================
         - id: appointment-service
           uri: lb://appointment-service
           predicates:
@@ -100,7 +118,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== Patient Service ==========
+        # ======================================================
+        # 🔹 Patient Service
+        # ======================================================
         - id: patient-service
           uri: lb://patient-service
           predicates:
@@ -108,7 +128,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== Payment Service ==========
+        # ======================================================
+        # 🔹 Payment Service
+        # ======================================================
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -116,7 +138,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== Medical Record Service ==========
+        # ======================================================
+        # 🔹 Medical Record Service
+        # ======================================================
         - id: medicalrecord-service
           uri: lb://medicalrecord-service
           predicates:
@@ -124,7 +148,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== Prescription Service ==========
+        # ======================================================
+        # 🔹 Prescription Service
+        # ======================================================
         - id: prescription-service
           uri: lb://prescription-service
           predicates:
@@ -132,7 +158,9 @@ spring:
           filters:
             - StripPrefix=1
 
-        # ========== Notification Service ==========
+        # ======================================================
+        # 🔹 Notification Service
+        # ======================================================
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -145,27 +173,6 @@ spring:
           enabled: true
           lower-case-service-id: true
 
-      # Cấu hình CORS toàn cục cho React FE
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:5173"
-              - "http://localhost:5174"
-              - "http://172.18.0.1:5173"
-              - "http://host.docker.internal:5173"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            exposedHeaders:
-              - "*"
-            allowCredentials: true
 
 # ===================== EUREKA =====================
 eureka:

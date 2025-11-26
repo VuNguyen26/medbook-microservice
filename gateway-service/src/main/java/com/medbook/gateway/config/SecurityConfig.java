@@ -5,13 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -42,103 +40,123 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(
             ServerHttpSecurity http,
             WebClient.Builder webClientBuilder,
-            AuthenticationFilter authenticationFilter
+            AuthenticationFilter authenticationFilter,
+            CorsConfigurationSource corsConfigurationSource
     ) {
 
         String frontendRedirect = "http://localhost:5173/login/success";
-        String frontendFailure = "http://localhost:5173/login?error=true";
-
-        // OAuth2 success callback
-        ServerAuthenticationSuccessHandler successHandler = (exchange, authentication) -> {
-            OAuth2User user = (OAuth2User) authentication.getPrincipal();
-            String email = user.getAttribute("email");
-            String name  = user.getAttribute("name");
-
-            return webClientBuilder.build()
-                    .post()
-                    .uri("lb://user-service/auth/oauth2/sync")
-                    .bodyValue(Map.of("email", email, "name", name))
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .flatMap(token -> {
-                        String redirectUrl = frontendRedirect +
-                                "?token=" + token +
-                                "&email=" + email +
-                                "&role=PATIENT";
-
-                        exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
-                        exchange.getExchange().getResponse().getHeaders().setLocation(URI.create(redirectUrl));
-                        return exchange.getExchange().getResponse().setComplete();
-                    })
-                    .onErrorResume(e -> {
-                        exchange.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
-                        exchange.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
-                        return exchange.getExchange().getResponse().setComplete();
-                    });
-        };
+        String frontendFailure  = "http://localhost:5173/login?error=true";
 
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
-                // ⭐ ĐÚNG – JWT FILTER CHẠY SAU CORS, TRƯỚC AUTHORIZATION
-                .addFilterBefore(authenticationFilter, SecurityWebFiltersOrder.AUTHORIZATION)
+                // Cho phép OPTIONS (preflight) đi qua luôn
+                .authorizeExchange(exchange -> exchange
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                )
+
+                // Đặt JWT filter
+                .addFilterAt(authenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 
                 .authorizeExchange(ex -> ex
-                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // ⭐ PUBLIC ROUTES – CHO FE GỌI KHÔNG CẦN TOKEN
+                        // ===== PUBLIC ROUTES =====
                         .pathMatchers(
                                 "/api/doctors/**",
                                 "/api/specialties/**",
                                 "/api/auth/**",
                                 "/login/**",
                                 "/oauth2/**",
-                                "/actuator/**"
+                                "/actuator/**",
+                                "/api/appointments/slots/**",
+                                "/api/appointments/*/qr",
+                                "/api/payments/fake"
                         ).permitAll()
 
-                        // Các API khác cần token
+                        // ===== PATIENT ONLY =====
+                        .pathMatchers(HttpMethod.POST, "/api/appointments").hasAuthority("PATIENT")
+                        .pathMatchers(HttpMethod.POST, "/api/payments").hasAuthority("PATIENT")
+                        .pathMatchers(HttpMethod.POST, "/api/payments/momo").hasAuthority("PATIENT")
+
+                        // All others must login
                         .anyExchange().authenticated()
                 )
 
+                // OAuth2 login
                 .oauth2Login(oauth -> oauth
-                        .authenticationSuccessHandler(successHandler)
-                        .authenticationFailureHandler((req, e) -> {
-                            req.getExchange().getResponse().setStatusCode(HttpStatus.FOUND);
-                            req.getExchange().getResponse().getHeaders().setLocation(URI.create(frontendFailure));
-                            return Mono.empty();
+                        .authenticationSuccessHandler((exchange, authentication) -> {
+
+                            OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
+                            String email = oauthUser.getAttribute("email");
+                            String name  = oauthUser.getAttribute("name");
+
+                            return webClientBuilder.build()
+                                    .post()
+                                    .uri("lb://user-service/auth/oauth2/sync")
+                                    .bodyValue(Map.of("email", email, "name", name))
+                                    .retrieve()
+                                    .bodyToMono(Map.class)
+                                    .flatMap(data -> {
+
+                                        String token   = (String)  data.get("token");
+                                        Integer userId = (Integer) data.get("id");
+                                        String role    = (String)  data.get("role");
+                                        String userName= (String)  data.get("name");
+
+                                        String redirectUrl = frontendRedirect
+                                                + "?token=" + token
+                                                + "&id=" + userId
+                                                + "&email=" + email
+                                                + "&name=" + userName
+                                                + "&role=" + role;
+
+                                        var response = exchange.getExchange().getResponse();
+                                        response.setStatusCode(HttpStatus.FOUND);
+                                        response.getHeaders().setLocation(URI.create(redirectUrl));
+                                        return response.setComplete();
+                                    })
+                                    .onErrorResume(e -> {
+                                        var response = exchange.getExchange().getResponse();
+                                        response.setStatusCode(HttpStatus.FOUND);
+                                        response.getHeaders().setLocation(URI.create(frontendFailure));
+                                        return response.setComplete();
+                                    });
                         })
                 )
 
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, e) -> {
-                            req.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                            req.getResponse().getHeaders().add("Content-Type", "application/json;charset=UTF-8");
+                        .authenticationEntryPoint((exchange, e) -> {
+                            var response = exchange.getResponse();
+                            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                            response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
                             byte[] bytes = "{\"message\":\"Unauthorized\"}".getBytes(StandardCharsets.UTF_8);
-                            return req.getResponse().writeWith(
-                                    Mono.just(req.getResponse().bufferFactory().wrap(bytes))
-                            );
+                            return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
                         })
-                        .accessDeniedHandler((req, e) -> {
-                            req.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                            req.getResponse().getHeaders().add("Content-Type", "application/json;charset=UTF-8");
+                        .accessDeniedHandler((exchange, e) -> {
+                            var response = exchange.getResponse();
+                            response.setStatusCode(HttpStatus.FORBIDDEN);
+                            response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
                             byte[] bytes = "{\"message\":\"Access Denied\"}".getBytes(StandardCharsets.UTF_8);
-                            return req.getResponse().writeWith(
-                                    Mono.just(req.getResponse().bufferFactory().wrap(bytes))
-                            );
+                            return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
                         })
                 )
+
                 .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173"
-        ));
-        config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowCredentials(true);
+        config.addAllowedHeader("*");
+
+        // BẮT BUỘC PHẢI CÓ – CHO PHÉP POST, OPTIONS, PUT, DELETE
+        config.addAllowedMethod("*");
+
+        // Expose headers cho FE đọc JWT hoặc redirect nếu cần
+        config.addExposedHeader("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

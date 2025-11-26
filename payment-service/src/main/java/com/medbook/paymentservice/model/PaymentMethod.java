@@ -7,7 +7,8 @@ public enum PaymentMethod {
     CASH("cash"),
     CREDIT_CARD("credit_card"),
     MOMO("momo"),
-    INSURANCE("insurance");
+    INSURANCE("insurance"),
+    FAKE("fake");
 
     private final String value;
 
