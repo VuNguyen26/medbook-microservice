@@ -2,7 +2,9 @@ package com.medbook.doctor.controller;
 
 import com.medbook.doctor.model.Doctor;
 import com.medbook.doctor.repository.DoctorRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -56,7 +58,21 @@ public class DoctorController {
     @GetMapping("/{id}")
     public Doctor getDoctorById(@PathVariable Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Doctor not found with id: " + id
+                ));
+    }
+
+    // =============== GET BY EMAIL (MỚI THÊM) ==================
+
+    @GetMapping("/email/{email}")
+    public Doctor getDoctorByEmail(@PathVariable String email) {
+        return repository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Doctor not found with email: " + email
+                ));
     }
 
     // =============== ADD ==================
@@ -83,7 +99,10 @@ public class DoctorController {
                     doctor.setImageUrl(updatedDoctor.getImageUrl());
                     return repository.save(doctor);
                 })
-                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Doctor not found with id: " + id
+                ));
     }
 
     // =============== DELETE ==================
@@ -91,7 +110,10 @@ public class DoctorController {
     @DeleteMapping("/{id}")
     public String deleteDoctor(@PathVariable Long id) {
         if (!repository.existsById(id)) {
-            throw new RuntimeException("Doctor not found with id: " + id);
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Doctor not found with id: " + id
+            );
         }
         repository.deleteById(id);
         return "Doctor with id " + id + " has been deleted successfully.";

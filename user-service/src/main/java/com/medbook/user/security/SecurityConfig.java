@@ -27,18 +27,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Cho phép CORS (Gateway forward header)
                 .cors(cors -> {})
-
-                // Tắt CSRF vì dùng JWT
                 .csrf(csrf -> csrf.disable())
-
-                // Sử dụng CustomUserDetailsService
                 .userDetailsService(customUserDetailsService)
 
-                // Phân quyền API
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // PUBLIC
                         .requestMatchers(
                                 "/auth/**",
                                 "/api/auth/**",
@@ -52,13 +48,15 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/error"
                         ).permitAll()
+
+                        // ⭐ CHO PHÉP LẤY USER TỪ TOKEN
+                        .requestMatchers("/users/me").authenticated()
+
+                        // Các API còn lại yêu cầu JWT
                         .anyRequest().authenticated()
                 )
 
-                // Stateless session cho JWT
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Thêm JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -66,9 +64,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(
-                org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder.BCryptVersion.$2A
-        );
+        return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2A);
     }
 
     @Bean

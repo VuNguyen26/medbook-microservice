@@ -1,14 +1,13 @@
 package com.medbook.appointmentservice.service;
 
 import com.medbook.appointmentservice.dto.AppointmentResponse;
-import com.medbook.appointmentservice.dto.PatientResponse;
 import com.medbook.appointmentservice.dto.DoctorResponse;
+import com.medbook.appointmentservice.dto.PatientResponse;
+import com.medbook.appointmentservice.dto.RatingRequest;
 import com.medbook.appointmentservice.model.Appointment;
 import com.medbook.appointmentservice.repository.AppointmentRepository;
-
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -16,11 +15,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +28,45 @@ public class AppointmentService {
 
     private final AppointmentRepository repository;
     private final RestTemplate restTemplate;
+
+    // ============================================================
+    // 🔧 Helper: Lấy token hiện tại từ request
+    // ============================================================
+    private HttpEntity<String> getAuthEntity() {
+        HttpServletRequest request =
+                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                        .getRequest();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", request.getHeader("Authorization"));
+        return new HttpEntity<>(headers);
+    }
+
+    // ============================================================
+    // 🔧 Helper: Map Appointment -> AppointmentResponse FLAT DTO
+    // ============================================================
+    private AppointmentResponse mapToDto(Appointment a, PatientResponse p, DoctorResponse d) {
+        AppointmentResponse dto = new AppointmentResponse();
+
+        dto.setId(a.getId());
+        dto.setPatientId(a.getPatientId());
+        dto.setPatientEmail(a.getPatientEmail());
+        dto.setDoctorId(a.getDoctorId());
+        dto.setServiceId(a.getServiceId());
+        dto.setAppointmentDate(a.getAppointmentDate());
+        dto.setAppointmentTime(a.getAppointmentTime());
+        dto.setRating(a.getRating());
+        dto.setRatingComment(a.getRatingComment());
+        dto.setNotes(a.getNotes());
+        dto.setStatus(a.getStatus());
+        dto.setPaymentStatus(a.getPaymentStatus());
+        dto.setPaid(a.getPaid());
+
+        if (p != null) dto.setPatientName(p.getFullName());
+        if (d != null) dto.setDoctorName(d.getFullName());
+
+        return dto;
+    }
 
     // ========================= CRUD =========================
     public List<Appointment> getAllAppointments() {
@@ -43,86 +82,71 @@ public class AppointmentService {
     public AppointmentResponse getAppointmentWithPatient(Long id) {
         Appointment appointment = getAppointmentById(id);
 
-        HttpServletRequest request =
-                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String token = request.getHeader("Authorization");
+        PatientResponse p = restTemplate.exchange(
+                "http://localhost:8080/api/patients/" + appointment.getPatientId(),
+                HttpMethod.GET,
+                getAuthEntity(),
+                PatientResponse.class
+        ).getBody();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        String url = "http://localhost:8080/api/patients/" + appointment.getPatientId();
-
-        ResponseEntity<PatientResponse> res = restTemplate.exchange(
-                url, HttpMethod.GET, entity, PatientResponse.class
-        );
-
-        AppointmentResponse output = new AppointmentResponse();
-        output.setAppointment(appointment);
-        output.setPatient(res.getBody());
-        return output;
+        return mapToDto(appointment, p, null);
     }
 
     // ========================= APPOINTMENT + DOCTOR =========================
     public AppointmentResponse getAppointmentWithDoctor(Long id) {
         Appointment appointment = getAppointmentById(id);
 
-        HttpServletRequest request =
-                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String token = request.getHeader("Authorization");
+        DoctorResponse d = restTemplate.exchange(
+                "http://localhost:8080/api/doctors/" + appointment.getDoctorId(),
+                HttpMethod.GET,
+                getAuthEntity(),
+                DoctorResponse.class
+        ).getBody();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        String url = "http://localhost:8080/api/doctors/" + appointment.getDoctorId();
-
-        ResponseEntity<DoctorResponse> res = restTemplate.exchange(
-                url, HttpMethod.GET, entity, DoctorResponse.class
-        );
-
-        AppointmentResponse output = new AppointmentResponse();
-        output.setAppointment(appointment);
-        output.setDoctor(res.getBody());
-        return output;
+        return mapToDto(appointment, null, d);
     }
 
     // ========================= FULL INFO =========================
     public AppointmentResponse getAppointmentWithFullInfo(Long id) {
-        Appointment appointment = getAppointmentById(id);
+        Appointment a = getAppointmentById(id);
 
-        HttpServletRequest request =
-                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String token = request.getHeader("Authorization");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        // Doctor
-        String doctorUrl = "http://localhost:8080/api/doctors/" + appointment.getDoctorId();
-        DoctorResponse doctor = restTemplate.exchange(
-                doctorUrl, HttpMethod.GET, entity, DoctorResponse.class
+        PatientResponse p = restTemplate.exchange(
+                "http://localhost:8080/api/patients/" + a.getPatientId(),
+                HttpMethod.GET,
+                getAuthEntity(),
+                PatientResponse.class
         ).getBody();
 
-        // Patient
-        String patientUrl = "http://localhost:8080/api/patients/" + appointment.getPatientId();
-        PatientResponse patient = restTemplate.exchange(
-                patientUrl, HttpMethod.GET, entity, PatientResponse.class
+        DoctorResponse d = restTemplate.exchange(
+                "http://localhost:8080/api/doctors/" + a.getDoctorId(),
+                HttpMethod.GET,
+                getAuthEntity(),
+                DoctorResponse.class
         ).getBody();
 
-        AppointmentResponse output = new AppointmentResponse();
-        output.setAppointment(appointment);
-        output.setDoctor(doctor);
-        output.setPatient(patient);
-        return output;
+        return mapToDto(a, p, d);
     }
 
     // ========================= CREATE =========================
     public Appointment createAppointment(Appointment appointment) {
+
         if (appointment.getStatus() == null) appointment.setStatus("PENDING");
         if (appointment.getPaymentStatus() == null) appointment.setPaymentStatus("UNPAID");
         if (appointment.getPaid() == null) appointment.setPaid(false);
+
+        // Auto fill patient email nếu thiếu
+        if (appointment.getPatientEmail() == null && appointment.getPatientId() != null) {
+            try {
+                PatientResponse p = restTemplate.getForObject(
+                        "http://localhost:8080/api/patients/" + appointment.getPatientId(),
+                        PatientResponse.class
+                );
+
+                if (p != null) appointment.setPatientEmail(p.getEmail());
+
+            } catch (Exception ignored) {}
+        }
+
         return repository.save(appointment);
     }
 
@@ -165,7 +189,12 @@ public class AppointmentService {
         return repository.findByPatientEmail(email);
     }
 
-    // ========================= PAYMENT =========================
+    // ========================= PATIENT LIST FOR DOCTOR =========================
+    public List<Map<String, Object>> getPatientsByDoctorId(Integer doctorId) {
+        return repository.findPatientStatsByDoctorId(doctorId);
+    }
+
+    // ========================= PAYMENT HANDLING =========================
     public Appointment markAsPaid(Long id) {
         Appointment a = getAppointmentById(id);
         a.setPaymentStatus("PAID");
@@ -173,21 +202,95 @@ public class AppointmentService {
         return repository.save(a);
     }
 
+    public Appointment confirm(Long id) {
+        Appointment a = getAppointmentById(id);
+
+        if (!"PAID".equals(a.getPaymentStatus()))
+            throw new RuntimeException("Cannot confirm appointment before payment");
+
+        a.setStatus("CONFIRMED");
+        return repository.save(a);
+    }
+
+    public Appointment markCompleted(Long id) {
+        Appointment a = getAppointmentById(id);
+
+        if (!"PAID".equals(a.getPaymentStatus()))
+            throw new RuntimeException("Cannot complete appointment before payment");
+
+        a.setStatus("COMPLETED");
+        return repository.save(a);
+    }
+
+    // ========================= RATING =========================
+    public Appointment rateAppointment(Long id, RatingRequest req, String email) {
+
+        Appointment a = getAppointmentById(id);
+
+        if (!"COMPLETED".equals(a.getStatus()))
+            throw new RuntimeException("Only completed appointments can be rated.");
+
+        if (!a.getPatientEmail().equalsIgnoreCase(email))
+            throw new RuntimeException("You are not allowed to rate this appointment.");
+
+        if (Boolean.TRUE.equals(a.getRated()))
+            throw new RuntimeException("This appointment is already rated.");
+
+        if (req.getRating() == null || req.getRating() < 1 || req.getRating() > 5)
+            throw new RuntimeException("Rating must be between 1 and 5.");
+
+        a.setRated(true);
+        a.setRating(req.getRating());
+        a.setRatingComment(req.getComment());
+        a.setRatedAt(LocalDateTime.now());
+
+        return repository.save(a);
+    }
+
+    // ============================================================
+    // ⭐⭐ DOCTOR REVIEWS (API FE ĐANG DÙNG) ⭐⭐
+    // ============================================================
+    public List<AppointmentResponse> getDoctorReviewsDTO(Integer doctorId) {
+
+        List<Appointment> list = repository.findByDoctorIdAndRatedTrue(doctorId);
+        List<AppointmentResponse> result = new ArrayList<>();
+
+        for (Appointment a : list) {
+
+            PatientResponse p = null;
+            DoctorResponse d = null;
+
+            try {
+                p = restTemplate.exchange(
+                        "http://localhost:8080/api/patients/" + a.getPatientId(),
+                        HttpMethod.GET, getAuthEntity(), PatientResponse.class
+                ).getBody();
+            } catch (Exception ignored) {}
+
+            try {
+                d = restTemplate.exchange(
+                        "http://localhost:8080/api/doctors/" + a.getDoctorId(),
+                        HttpMethod.GET, getAuthEntity(), DoctorResponse.class
+                ).getBody();
+            } catch (Exception ignored) {}
+
+            result.add(mapToDto(a, p, d));
+        }
+
+        return result;
+    }
+
     // ===================================================================
-    // FULL FEATURE: TẠO KHUNG GIỜ TRỐNG (SÁNG – CHIỀU)
+    // SLOT GENERATION
     // ===================================================================
     public List<AppointmentSlot> getAvailableSlots(Long doctorId, String date, int durationMinutes) {
 
         LocalDate targetDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        // Fix giờ làm việc
         LocalTime start = LocalTime.of(8, 0);
         LocalTime end = LocalTime.of(18, 0);
 
-        Integer doctorIdInt = doctorId.intValue();
-
         List<Appointment> existingAppointments =
-                repository.findByDoctorIdAndAppointmentDate(doctorIdInt, targetDate);
+                repository.findByDoctorIdAndAppointmentDate(doctorId.intValue(), targetDate);
 
         List<AppointmentSlot> result = new ArrayList<>();
 
@@ -198,13 +301,11 @@ public class AppointmentService {
 
             boolean isTaken = existingAppointments.stream().anyMatch(a ->
                     a.getAppointmentTime().equals(slotStart)
+                            && "PAID".equals(a.getPaymentStatus())
             );
 
             if (!isTaken) {
-                result.add(new AppointmentSlot(
-                        date + "T" + slotStart,
-                        true
-                ));
+                result.add(new AppointmentSlot(date + "T" + slotStart, true));
             }
 
             pointer = pointer.plusMinutes(30);
@@ -222,5 +323,9 @@ public class AppointmentService {
             this.start_at = start_at;
             this.available = available;
         }
+    }
+
+    public List<Appointment> getAppointmentsMissingPatientId() {
+        return repository.findByPatientIdIsNull();
     }
 }

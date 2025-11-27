@@ -25,20 +25,31 @@ public class SecurityConfig {
                 .sessionManagement(sess ->
                         sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authorizeHttpRequests(auth -> auth
-                        // ⭐ Cho phép public API
                         .requestMatchers(
-                                "/doctors/**",          // FE gọi qua gateway (stripPrefix)
-                                "/api/doctors/**",      // gọi trực tiếp Postman
+                                // ⭐ PUBLIC API — FE ĐANG GỌI
+                                "/doctors",
+                                "/doctors/",
+                                "/doctors/**",          // ⭐ quan trọng
+
+                                // Public endpoint lấy bác sĩ theo email
+                                "/doctors/email/**",
+                                "/api/doctors/email/**",
+
+                                "/doctors/public/**",
                                 "/api/doctors/public/**",
+
+                                // swagger
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // ⭐ Mọi API khác bắt buộc JWT
+                        // Các API khác cần JWT
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

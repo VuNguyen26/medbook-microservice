@@ -51,12 +51,12 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
-                // Cho phép OPTIONS (preflight) đi qua luôn
+                // Cho phép OPTIONS (preflight)
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 )
 
-                // Đặt JWT filter
+                // JWT filter
                 .addFilterAt(authenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
 
                 .authorizeExchange(ex -> ex
@@ -71,6 +71,9 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/api/appointments/slots/**",
                                 "/api/appointments/*/qr",
+
+                                // Cho Doctor xem reviews
+                                "/api/appointments/doctor/*/reviews",
                                 "/api/payments/fake"
                         ).permitAll()
 
@@ -79,7 +82,10 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/payments").hasAuthority("PATIENT")
                         .pathMatchers(HttpMethod.POST, "/api/payments/momo").hasAuthority("PATIENT")
 
-                        // All others must login
+                        // ===== BỆNH NHÂN ĐƯỢC HỦY LỊCH (CHỈ CẦN AUTHENTICATED) =====
+                        .pathMatchers(HttpMethod.PUT, "/api/appointments/*/cancel-unpaid").authenticated()
+
+                        // Các request còn lại chỉ cần đăng nhập
                         .anyExchange().authenticated()
                 )
 
@@ -99,10 +105,10 @@ public class SecurityConfig {
                                     .bodyToMono(Map.class)
                                     .flatMap(data -> {
 
-                                        String token   = (String)  data.get("token");
-                                        Integer userId = (Integer) data.get("id");
-                                        String role    = (String)  data.get("role");
-                                        String userName= (String)  data.get("name");
+                                        String token    = (String)  data.get("token");
+                                        Integer userId  = (Integer) data.get("id");
+                                        String role     = (String)  data.get("role");
+                                        String userName = (String)  data.get("name");
 
                                         String redirectUrl = frontendRedirect
                                                 + "?token=" + token
@@ -152,10 +158,10 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.addAllowedHeader("*");
 
-        // BẮT BUỘC PHẢI CÓ – CHO PHÉP POST, OPTIONS, PUT, DELETE
+        // Cho phép mọi method: GET, POST, PUT, DELETE, OPTIONS...
         config.addAllowedMethod("*");
 
-        // Expose headers cho FE đọc JWT hoặc redirect nếu cần
+        // Expose headers cho FE
         config.addExposedHeader("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

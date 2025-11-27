@@ -33,6 +33,14 @@ public class PatientController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // 🔹 GET patient by EMAIL (⭐ API cần cho AppointmentService)
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Patient> getPatientByEmail(@PathVariable String email) {
+        return repository.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     // 🔹 CREATE new patient
     @PostMapping
     public ResponseEntity<Patient> addPatient(@RequestBody Patient patient) {

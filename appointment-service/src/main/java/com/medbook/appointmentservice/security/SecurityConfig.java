@@ -51,25 +51,38 @@ public class SecurityConfig {
                         // ===== PUBLIC SLOT =====
                         .requestMatchers(HttpMethod.GET, "/appointments/slots/**").permitAll()
 
-                        // ===== INTERNAL PAID CALLBACK (Payment Service) =====
-                        // Không yêu cầu JWT — đây là API nội bộ giữa microservices
+                        // ===== INTERNAL PAYMENT CALLBACK =====
                         .requestMatchers(HttpMethod.PUT, "/appointments/*/paid").permitAll()
 
-                        // ===== CREATE APPOINTMENT =====
+                        // ===== PUBLIC DOCTOR REVIEWS (fix 403) =====
+                        .requestMatchers(HttpMethod.GET, "/appointments/doctor/*/reviews").permitAll()
+
+                        // ===== PATIENT CANCEL APPOINTMENT =====
+                        .requestMatchers(HttpMethod.PUT, "/appointments/*/cancel-unpaid")
+                        .hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+
+                        // ===== CONFIRM (Doctor/Admin) =====
+                        .requestMatchers(HttpMethod.PUT, "/appointments/*/confirm")
+                        .hasAnyRole("DOCTOR", "ADMIN")
+
+                        // ===== COMPLETE APPOINTMENT (Doctor/Admin) =====
+                        .requestMatchers(HttpMethod.PUT, "/appointments/*/complete")
+                        .hasAnyRole("DOCTOR", "ADMIN")
+
+                        // ===== CREATE APPOINTMENT (Patient + Doctor) =====
                         .requestMatchers(HttpMethod.POST, "/appointments/**")
                         .hasAnyRole("PATIENT", "DOCTOR")
 
-                        // ===== UPDATE / DELETE OTHER DATA =====
+                        // ===== UPDATE / DELETE =====
                         .requestMatchers(HttpMethod.PUT, "/appointments/**")
                         .hasAnyRole("DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/appointments/**")
                         .hasAnyRole("DOCTOR", "ADMIN")
 
-                        // ===== GET APPOINTMENTS =====
+                        // ===== GET APPOINTMENTS (private) =====
                         .requestMatchers(HttpMethod.GET, "/appointments/**")
                         .hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
 
-                        // ===== EVERYTHING ELSE =====
                         .anyRequest().authenticated()
                 )
 

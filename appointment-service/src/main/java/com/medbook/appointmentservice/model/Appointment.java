@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -12,6 +13,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Appointment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,4 +33,14 @@ public class Appointment {
     private Boolean paid;
     private String reason;
     private Long clinicLocationId;
+
+    // ========================= RATING FIELDS =========================
+    private Integer rating;
+
+    @Column(length = 1000)
+    private String ratingComment;
+
+    private Boolean rated = false;
+
+    private LocalDateTime ratedAt;
 }

@@ -32,8 +32,7 @@ public class AuthenticationFilter implements WebFilter {
         String path = request.getURI().getPath();
 
         // ============================================================
-        // QR CHECKIN PUBLIC: (trước StripPrefix)  /api/appointments/{id}/qr
-        // QR CHECKIN PUBLIC: (sau StripPrefix)   /appointments/{id}/qr
+        // QR CHECKIN PUBLIC
         // ============================================================
         if (path.matches("^/appointments/\\d+/qr$") ||
                 path.matches("^/api/appointments/\\d+/qr$")) {
@@ -42,7 +41,15 @@ public class AuthenticationFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        //  Public routes không yêu cầu JWT
+        // ============================================================
+        // ⭐⭐⭐ THÊM REVIEW API VÀO PUBLIC PATTERN ⭐⭐⭐
+        // ============================================================
+        if (path.matches("^/api/appointments/doctor/\\d+/reviews$")) {
+            System.out.println(">>> PUBLIC REVIEW (skip JWT): " + path);
+            return chain.filter(exchange);
+        }
+
+        // Public routes không yêu cầu JWT
         String[] PUBLIC_PATTERNS = {
                 "^/api/doctors(/.*)?$",
                 "^/api/specialties(/.*)?$",
@@ -62,7 +69,9 @@ public class AuthenticationFilter implements WebFilter {
             }
         }
 
-        // Các API khác phải có JWT
+        // ============================================================
+        // JWT bắt buộc cho các API còn lại
+        // ============================================================
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

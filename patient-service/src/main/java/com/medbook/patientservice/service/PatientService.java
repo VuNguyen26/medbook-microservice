@@ -22,6 +22,11 @@ public class PatientService {
         return patientRepository.findById(id);
     }
 
+    // ⭐ NEW: Find patient by email
+    public Optional<Patient> getPatientByEmail(String email) {
+        return patientRepository.findByEmail(email);
+    }
+
     public Patient createPatient(Patient patient) {
         return patientRepository.save(patient);
     }

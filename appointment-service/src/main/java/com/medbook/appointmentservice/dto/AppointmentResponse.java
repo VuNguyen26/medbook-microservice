@@ -1,28 +1,36 @@
 package com.medbook.appointmentservice.dto;
 
-import com.medbook.appointmentservice.model.Appointment;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppointmentResponse {
 
-    private Appointment appointment;
-    private PatientResponse patient;
-    private DoctorResponse doctor;
+    private Long id;
 
-    // Constructor khi chỉ có Appointment + Patient
-    public AppointmentResponse(Appointment appointment, PatientResponse patient) {
-        this.appointment = appointment;
-        this.patient = patient;
-    }
+    private Integer patientId;
+    private String patientEmail;
 
-    // Constructor khi chỉ có Appointment + Doctor
-    public AppointmentResponse(Appointment appointment, DoctorResponse doctor) {
-        this.appointment = appointment;
-        this.doctor = doctor;
-    }
+    private Integer doctorId;
+    private Integer serviceId;
+
+    private LocalDate appointmentDate;
+    private LocalTime appointmentTime;
+
+    private Integer rating;
+    private String ratingComment;
+
+    private String notes;
+    private String status;
+    private String paymentStatus;
+    private Boolean paid;
+
+    private String patientName;  // optional
+    private String doctorName;   // optional
 }

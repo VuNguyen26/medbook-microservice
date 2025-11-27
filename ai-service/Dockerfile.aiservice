@@ -22,16 +22,12 @@ ENV TZ=Asia/Ho_Chi_Minh
 # Copy JAR
 COPY --from=builder /build/target/*.jar app.jar
 
-# COPY application.yml vào container
-COPY ai-service/src/main/resources/application.yml /app/application.yml
-
 ENV JAVA_OPTS="-XX:+UseContainerSupport \
                -XX:MaxRAMPercentage=70.0 \
                -XX:+UseG1GC \
                -XX:+UseStringDeduplication \
                -XX:+HeapDumpOnOutOfMemoryError"
 
-# Chạy với application.yml bên ngoài
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.config.location=file:/app/application.yml"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 
 EXPOSE 8089
