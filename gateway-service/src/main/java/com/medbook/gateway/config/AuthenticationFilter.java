@@ -58,6 +58,7 @@ public class AuthenticationFilter implements WebFilter {
                 "^/oauth2(/.*)?$",
                 "^/actuator(/.*)?$",
                 "^/api/appointments/slots(/.*)?$",
+                "^/api/appointments/reports(/.*)?$",
                 "^/api/payments/fake$",
                 "^/api/payments/fake(/.*)?$"
         };
@@ -92,12 +93,10 @@ public class AuthenticationFilter implements WebFilter {
         String username = claims.getSubject();
         String role = (String) claims.get("role");
 
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        username,
-                        null,
-                        List.of(new SimpleGrantedAuthority(role))
-                );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                username,
+                null,
+                List.of(new SimpleGrantedAuthority(role)));
 
         System.out.println(">>> JWT AUTHORIZED: " + username + " | ROLE = " + role);
 

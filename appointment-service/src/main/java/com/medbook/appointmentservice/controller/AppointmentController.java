@@ -2,17 +2,20 @@ package com.medbook.appointmentservice.controller;
 
 import com.medbook.appointmentservice.dto.PatientResponse;
 import com.medbook.appointmentservice.model.Appointment;
+import com.medbook.appointmentservice.service.AppointmentReportService;
 import com.medbook.appointmentservice.service.AppointmentService;
 import com.medbook.appointmentservice.dto.AppointmentResponse;
 import com.medbook.appointmentservice.service.QRService;
 import com.medbook.appointmentservice.dto.RatingRequest;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +25,7 @@ import java.util.Map;
 public class AppointmentController {
 
     private final AppointmentService service;
+    private final AppointmentReportService reportService;
     private final QRService qrService;
 
     // ========================= USER: GET MY APPOINTMENTS =========================
@@ -36,8 +40,7 @@ public class AppointmentController {
     public ResponseEntity<?> getAvailableSlots(
             @RequestParam Long doctorId,
             @RequestParam String date,
-            @RequestParam Integer duration
-    ) {
+            @RequestParam Integer duration) {
         return ResponseEntity.ok(service.getAvailableSlots(doctorId, date, duration));
     }
 
@@ -45,8 +48,7 @@ public class AppointmentController {
     @PostMapping
     public ResponseEntity<Appointment> createAppointment(
             @RequestBody Appointment appointment,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
         String email = authentication.getName();
         appointment.setPatientEmail(email);
 
@@ -74,7 +76,7 @@ public class AppointmentController {
 
     // ========================= CRUD =========================
     @GetMapping
-    public ResponseEntity<List<Appointment>> getAllAppointments() {
+    public ResponseEntity<List<AppointmentResponse>> getAllAppointments() {
         return ResponseEntity.ok(service.getAllAppointments());
     }
 
@@ -86,8 +88,7 @@ public class AppointmentController {
     @PutMapping("/{id}")
     public ResponseEntity<Appointment> updateAppointment(
             @PathVariable Long id,
-            @RequestBody Appointment updated
-    ) {
+            @RequestBody Appointment updated) {
         Appointment result = service.updateAppointment(id, updated);
         return ResponseEntity.ok(result);
     }
@@ -98,7 +99,8 @@ public class AppointmentController {
         return ResponseEntity.noContent().build();
     }
 
-    // ========================= FILTER BY DOCTOR / PATIENT =========================
+    // ========================= FILTER BY DOCTOR / PATIENT
+    // =========================
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<List<Appointment>> getByDoctor(@PathVariable Integer doctorId) {
         return ResponseEntity.ok(service.getAppointmentsByDoctor(doctorId));
@@ -112,8 +114,7 @@ public class AppointmentController {
     // ========================= DOCTOR: GET PATIENT LIST =========================
     @GetMapping("/doctor/{doctorId}/patients")
     public ResponseEntity<List<Map<String, Object>>> getPatientsByDoctor(
-            @PathVariable Integer doctorId
-    ) {
+            @PathVariable Integer doctorId) {
         return ResponseEntity.ok(service.getPatientsByDoctorId(doctorId));
     }
 
@@ -131,6 +132,26 @@ public class AppointmentController {
     @GetMapping("/{id}/with-full-info")
     public ResponseEntity<AppointmentResponse> getAppointmentWithFullInfo(@PathVariable Long id) {
         return ResponseEntity.ok(service.getAppointmentWithFullInfo(id));
+    }
+
+    // ========================= REPORTS =========================
+    @GetMapping("/reports/pdf")
+    public ResponseEntity<byte[]> exportAppointmentsPdf(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) Integer doctorId
+    ) throws Exception {
+        byte[] pdf = reportService.generateAppointmentsReport(fromDate, toDate, doctorId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+                ContentDisposition.inline().filename("appointments.pdf").build()
+        );
+
+        return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
     }
 
     // ========================= PAYMENT SUCCESS =========================
@@ -207,6 +228,17 @@ public class AppointmentController {
     @PutMapping("/{id}/complete")
     public ResponseEntity<String> markCompleted(@PathVariable Long id) {
         service.markCompleted(id);
+
+        // Đồng bộ trạng thái payment -> COMPLETED theo appointmentId
+        try {
+            String url = "http://gateway-service:8080/api/payments/by-appointment/" + id + "/complete";
+            RestTemplate rest = new RestTemplate();
+            rest.put(url, null);
+        } catch (Exception e) {
+            System.out
+                    .println("⚠ Không thể đồng bộ payment COMPLETED cho appointmentId = " + id + ": " + e.getMessage());
+        }
+
         return ResponseEntity.ok("Appointment " + id + " marked as COMPLETED");
     }
 
@@ -215,8 +247,7 @@ public class AppointmentController {
     public ResponseEntity<?> rateAppointment(
             @PathVariable Long id,
             @RequestBody RatingRequest req,
-            Authentication auth
-    ) {
+            Authentication auth) {
         String email = auth.getName();
 
         try {
@@ -227,13 +258,15 @@ public class AppointmentController {
         }
     }
 
-    // ========================= ⭐ RETURN REVIEWS DTO (FIXED) ⭐ =========================
+    // ========================= ⭐ RETURN REVIEWS DTO (FIXED) ⭐
+    // =========================
     @GetMapping("/doctor/{doctorId}/reviews")
     public ResponseEntity<List<AppointmentResponse>> getDoctorReviews(@PathVariable Integer doctorId) {
         return ResponseEntity.ok(service.getDoctorReviewsDTO(doctorId));
     }
 
-    // ========================= ⭐ MIGRATION: FIX MISSING patientId ⭐ =========================
+    // ========================= ⭐ MIGRATION: FIX MISSING patientId ⭐
+    // =========================
     @PostMapping("/fix-missing-patient-id")
     public ResponseEntity<?> fixMissingPatientId() {
 
@@ -243,7 +276,8 @@ public class AppointmentController {
         int fixed = 0;
 
         for (Appointment a : list) {
-            if (a.getPatientEmail() == null) continue;
+            if (a.getPatientEmail() == null)
+                continue;
 
             try {
                 String url = "http://localhost:8080/api/patients/email/" + a.getPatientEmail();
@@ -255,7 +289,8 @@ public class AppointmentController {
                     fixed++;
                 }
 
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return ResponseEntity.ok("Fixed patient_id for " + fixed + " appointments");

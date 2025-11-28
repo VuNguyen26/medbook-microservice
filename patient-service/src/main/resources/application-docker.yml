@@ -1,5 +1,5 @@
 server:
-  port: 8082   # ⚠️ nhớ dùng cổng trùng với docker-compose.yml của bạn
+  port: 8082 # ⚠️ nhớ dùng cổng trùng với docker-compose.yml của bạn
 
 spring:
   application:

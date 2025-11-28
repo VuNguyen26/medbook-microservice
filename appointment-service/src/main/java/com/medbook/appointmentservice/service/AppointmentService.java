@@ -33,9 +33,8 @@ public class AppointmentService {
     // 🔧 Helper: Lấy token hiện tại từ request
     // ============================================================
     private HttpEntity<String> getAuthEntity() {
-        HttpServletRequest request =
-                ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
-                        .getRequest();
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .getRequest();
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", request.getHeader("Authorization"));
@@ -62,15 +61,55 @@ public class AppointmentService {
         dto.setPaymentStatus(a.getPaymentStatus());
         dto.setPaid(a.getPaid());
 
-        if (p != null) dto.setPatientName(p.getFullName());
-        if (d != null) dto.setDoctorName(d.getFullName());
+        if (p != null)
+            dto.setPatientName(p.getFullName());
+        if (d != null)
+            dto.setDoctorName(d.getFullName());
 
         return dto;
     }
 
     // ========================= CRUD =========================
-    public List<Appointment> getAllAppointments() {
-        return repository.findAll();
+    public List<AppointmentResponse> getAllAppointments() {
+        List<Appointment> list = repository.findAll();
+        List<AppointmentResponse> result = new ArrayList<>();
+
+        for (Appointment a : list) {
+            PatientResponse p = null;
+            DoctorResponse d = null;
+
+            // Lấy thông tin bệnh nhân – nếu lỗi vẫn tiếp tục
+            try {
+                if (a.getPatientId() != null) {
+                    p = restTemplate.exchange(
+                            "http://gateway-service:8080/api/patients/" + a.getPatientId(),
+                            HttpMethod.GET,
+                            getAuthEntity(),
+                            PatientResponse.class).getBody();
+                }
+            } catch (Exception ex) {
+                System.out.println(
+                        "⚠ Không lấy được thông tin patient cho appointment " + a.getId() + ": " + ex.getMessage());
+            }
+
+            // Lấy thông tin bác sĩ – nếu lỗi vẫn tiếp tục
+            try {
+                if (a.getDoctorId() != null) {
+                    d = restTemplate.exchange(
+                            "http://gateway-service:8080/api/doctors/" + a.getDoctorId(),
+                            HttpMethod.GET,
+                            getAuthEntity(),
+                            DoctorResponse.class).getBody();
+                }
+            } catch (Exception ex) {
+                System.out.println(
+                        "⚠ Không lấy được thông tin doctor cho appointment " + a.getId() + ": " + ex.getMessage());
+            }
+
+            result.add(mapToDto(a, p, d));
+        }
+
+        return result;
     }
 
     public Appointment getAppointmentById(Long id) {
@@ -83,11 +122,10 @@ public class AppointmentService {
         Appointment appointment = getAppointmentById(id);
 
         PatientResponse p = restTemplate.exchange(
-                "http://localhost:8080/api/patients/" + appointment.getPatientId(),
+                "http://gateway-service:8080/api/patients/" + appointment.getPatientId(),
                 HttpMethod.GET,
                 getAuthEntity(),
-                PatientResponse.class
-        ).getBody();
+                PatientResponse.class).getBody();
 
         return mapToDto(appointment, p, null);
     }
@@ -96,12 +134,18 @@ public class AppointmentService {
     public AppointmentResponse getAppointmentWithDoctor(Long id) {
         Appointment appointment = getAppointmentById(id);
 
-        DoctorResponse d = restTemplate.exchange(
-                "http://localhost:8080/api/doctors/" + appointment.getDoctorId(),
-                HttpMethod.GET,
-                getAuthEntity(),
-                DoctorResponse.class
-        ).getBody();
+        DoctorResponse d = null;
+        try {
+            if (appointment.getDoctorId() != null) {
+                d = restTemplate.exchange(
+                        "http://gateway-service:8080/api/doctors/" + appointment.getDoctorId(),
+                        HttpMethod.GET,
+                        getAuthEntity(),
+                        DoctorResponse.class).getBody();
+            }
+        } catch (Exception ex) {
+            System.out.println("⚠ Không lấy được thông tin doctor cho appointment " + id + ": " + ex.getMessage());
+        }
 
         return mapToDto(appointment, null, d);
     }
@@ -110,19 +154,34 @@ public class AppointmentService {
     public AppointmentResponse getAppointmentWithFullInfo(Long id) {
         Appointment a = getAppointmentById(id);
 
-        PatientResponse p = restTemplate.exchange(
-                "http://localhost:8080/api/patients/" + a.getPatientId(),
-                HttpMethod.GET,
-                getAuthEntity(),
-                PatientResponse.class
-        ).getBody();
+        PatientResponse p = null;
+        DoctorResponse d = null;
 
-        DoctorResponse d = restTemplate.exchange(
-                "http://localhost:8080/api/doctors/" + a.getDoctorId(),
-                HttpMethod.GET,
-                getAuthEntity(),
-                DoctorResponse.class
-        ).getBody();
+        // Lấy thông tin bệnh nhân – nếu lỗi (403/404/...), vẫn trả về appointment
+        try {
+            if (a.getPatientId() != null) {
+                p = restTemplate.exchange(
+                        "http://gateway-service:8080/api/patients/" + a.getPatientId(),
+                        HttpMethod.GET,
+                        getAuthEntity(),
+                        PatientResponse.class).getBody();
+            }
+        } catch (Exception ex) {
+            System.out.println("⚠ Không lấy được thông tin patient cho appointment " + id + ": " + ex.getMessage());
+        }
+
+        // Lấy thông tin bác sĩ – nếu lỗi, vẫn tiếp tục
+        try {
+            if (a.getDoctorId() != null) {
+                d = restTemplate.exchange(
+                        "http://gateway-service:8080/api/doctors/" + a.getDoctorId(),
+                        HttpMethod.GET,
+                        getAuthEntity(),
+                        DoctorResponse.class).getBody();
+            }
+        } catch (Exception ex) {
+            System.out.println("⚠ Không lấy được thông tin doctor cho appointment " + id + ": " + ex.getMessage());
+        }
 
         return mapToDto(a, p, d);
     }
@@ -130,21 +189,25 @@ public class AppointmentService {
     // ========================= CREATE =========================
     public Appointment createAppointment(Appointment appointment) {
 
-        if (appointment.getStatus() == null) appointment.setStatus("PENDING");
-        if (appointment.getPaymentStatus() == null) appointment.setPaymentStatus("UNPAID");
-        if (appointment.getPaid() == null) appointment.setPaid(false);
+        if (appointment.getStatus() == null)
+            appointment.setStatus("PENDING");
+        if (appointment.getPaymentStatus() == null)
+            appointment.setPaymentStatus("UNPAID");
+        if (appointment.getPaid() == null)
+            appointment.setPaid(false);
 
         // Auto fill patient email nếu thiếu
         if (appointment.getPatientEmail() == null && appointment.getPatientId() != null) {
             try {
                 PatientResponse p = restTemplate.getForObject(
                         "http://localhost:8080/api/patients/" + appointment.getPatientId(),
-                        PatientResponse.class
-                );
+                        PatientResponse.class);
 
-                if (p != null) appointment.setPatientEmail(p.getEmail());
+                if (p != null)
+                    appointment.setPatientEmail(p.getEmail());
 
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return repository.save(appointment);
@@ -263,16 +326,16 @@ public class AppointmentService {
             try {
                 p = restTemplate.exchange(
                         "http://localhost:8080/api/patients/" + a.getPatientId(),
-                        HttpMethod.GET, getAuthEntity(), PatientResponse.class
-                ).getBody();
-            } catch (Exception ignored) {}
+                        HttpMethod.GET, getAuthEntity(), PatientResponse.class).getBody();
+            } catch (Exception ignored) {
+            }
 
             try {
                 d = restTemplate.exchange(
                         "http://localhost:8080/api/doctors/" + a.getDoctorId(),
-                        HttpMethod.GET, getAuthEntity(), DoctorResponse.class
-                ).getBody();
-            } catch (Exception ignored) {}
+                        HttpMethod.GET, getAuthEntity(), DoctorResponse.class).getBody();
+            } catch (Exception ignored) {
+            }
 
             result.add(mapToDto(a, p, d));
         }
@@ -289,8 +352,8 @@ public class AppointmentService {
         LocalTime start = LocalTime.of(8, 0);
         LocalTime end = LocalTime.of(18, 0);
 
-        List<Appointment> existingAppointments =
-                repository.findByDoctorIdAndAppointmentDate(doctorId.intValue(), targetDate);
+        List<Appointment> existingAppointments = repository.findByDoctorIdAndAppointmentDate(doctorId.intValue(),
+                targetDate);
 
         List<AppointmentSlot> result = new ArrayList<>();
 
@@ -299,10 +362,8 @@ public class AppointmentService {
 
             LocalTime slotStart = pointer;
 
-            boolean isTaken = existingAppointments.stream().anyMatch(a ->
-                    a.getAppointmentTime().equals(slotStart)
-                            && "PAID".equals(a.getPaymentStatus())
-            );
+            boolean isTaken = existingAppointments.stream().anyMatch(a -> a.getAppointmentTime().equals(slotStart)
+                    && "PAID".equals(a.getPaymentStatus()));
 
             if (!isTaken) {
                 result.add(new AppointmentSlot(date + "T" + slotStart, true));

@@ -16,34 +16,36 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // Tắt CSRF vì service không dùng session
-                .csrf(csrf -> csrf.disable())
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                // Tắt CSRF vì service không dùng session
+                                .csrf(csrf -> csrf.disable())
 
-                // Stateless session (JWT-only)
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                // Stateless session (JWT-only)
+                                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Quy định quyền truy cập
-                .authorizeHttpRequests(auth -> auth
-                        // Các endpoint PUBLIC không cần JWT
-                        .requestMatchers(
-                                "/notifications/public/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
+                                // Quy định quyền truy cập
+                                .authorizeHttpRequests(auth -> auth
+                                                // Các endpoint PUBLIC không cần JWT
+                                                .requestMatchers(
+                                                                "/actuator/**",
+                                                                "/notifications/public/**",
+                                                                // Cho phép gửi email booking-success không cần JWT (demo)
+                                                                "/notifications/email/**",
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html")
+                                                .permitAll()
 
-                        // Các endpoint còn lại yêu cầu JWT
-                        .anyRequest().authenticated()
-                )
+                                                // Các endpoint còn lại yêu cầu JWT
+                                                .anyRequest().authenticated())
 
-                // Thêm JWT filter vào pipeline
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                // Thêm JWT filter vào pipeline
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 }

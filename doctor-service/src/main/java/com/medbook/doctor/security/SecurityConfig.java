@@ -14,44 +14,47 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.disable())
-                .sessionManagement(sess ->
-                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .cors(cors -> cors.disable())
+                                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                // ⭐ PUBLIC API — FE ĐANG GỌI
-                                "/doctors",
-                                "/doctors/",
-                                "/doctors/**",          // ⭐ quan trọng
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(
+                                                                // ⭐ PUBLIC API — FE ĐANG GỌI
+                                                                "/doctors",
+                                                                "/doctors/",
+                                                                "/doctors/**", // ⭐ quan trọng
 
-                                // Public endpoint lấy bác sĩ theo email
-                                "/doctors/email/**",
-                                "/api/doctors/email/**",
+                                                                // Public endpoint lấy bác sĩ theo email
+                                                                "/doctors/email/**",
+                                                                "/api/doctors/email/**",
 
-                                "/doctors/public/**",
-                                "/api/doctors/public/**",
+                                                                "/doctors/public/**",
+                                                                "/api/doctors/public/**",
 
-                                // swagger
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
+                                                                // swagger
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html")
+                                                .permitAll()
 
-                        // Các API khác cần JWT
-                        .anyRequest().authenticated()
-                )
+                                                // Cho phép actuator cho healthcheck Docker
+                                                .requestMatchers(
+                                                                "/actuator/**",
+                                                                "/error")
+                                                .permitAll()
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                                // Các API khác cần JWT
+                                                .anyRequest().authenticated())
 
-        return http.build();
-    }
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+        }
 }

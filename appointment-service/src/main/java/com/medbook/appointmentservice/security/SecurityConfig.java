@@ -19,75 +19,76 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+                return authConfig.getAuthenticationManager();
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sess ->
-                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                .authorizeHttpRequests(auth -> auth
+                                .authorizeHttpRequests(auth -> auth
 
-                        // ===== PUBLIC APIS =====
-                        .requestMatchers(
-                                "/appointments/public/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
+                                                // ===== PUBLIC APIS =====
+                                                .requestMatchers(
+                                                                "/appointments/public/**",
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html")
+                                                .permitAll()
 
-                        // ===== PUBLIC QR Check-in =====
-                        .requestMatchers(HttpMethod.GET, "/appointments/*/qr").permitAll()
+                                                // ===== PUBLIC QR Check-in =====
+                                                .requestMatchers(HttpMethod.GET, "/appointments/*/qr").permitAll()
 
-                        // ===== PUBLIC SLOT =====
-                        .requestMatchers(HttpMethod.GET, "/appointments/slots/**").permitAll()
+                                                // ===== PUBLIC SLOT =====
+                                                .requestMatchers(HttpMethod.GET, "/appointments/slots/**").permitAll()
 
-                        // ===== INTERNAL PAYMENT CALLBACK =====
-                        .requestMatchers(HttpMethod.PUT, "/appointments/*/paid").permitAll()
+                                                // ===== INTERNAL PAYMENT CALLBACK =====
+                                                .requestMatchers(HttpMethod.PUT, "/appointments/*/paid").permitAll()
 
-                        // ===== PUBLIC DOCTOR REVIEWS (fix 403) =====
-                        .requestMatchers(HttpMethod.GET, "/appointments/doctor/*/reviews").permitAll()
+                                                // ===== PUBLIC DOCTOR REVIEWS (fix 403) =====
+                                                .requestMatchers(HttpMethod.GET, "/appointments/doctor/*/reviews")
+                                                .permitAll()
 
-                        // ===== PATIENT CANCEL APPOINTMENT =====
-                        .requestMatchers(HttpMethod.PUT, "/appointments/*/cancel-unpaid")
-                        .hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+                                                // ===== PATIENT CANCEL APPOINTMENT =====
+                                                .requestMatchers(HttpMethod.PUT, "/appointments/*/cancel-unpaid")
+                                                .hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
 
-                        // ===== CONFIRM (Doctor/Admin) =====
-                        .requestMatchers(HttpMethod.PUT, "/appointments/*/confirm")
-                        .hasAnyRole("DOCTOR", "ADMIN")
+                                                // ===== REPORT PDF (cho phép qua gateway + FE đã chặn role ADMIN) =====
+                                                .requestMatchers(HttpMethod.GET, "/appointments/reports/**").permitAll()
 
-                        // ===== COMPLETE APPOINTMENT (Doctor/Admin) =====
-                        .requestMatchers(HttpMethod.PUT, "/appointments/*/complete")
-                        .hasAnyRole("DOCTOR", "ADMIN")
+                                                // ===== CONFIRM (Doctor/Admin) =====
+                                                .requestMatchers(HttpMethod.PUT, "/appointments/*/confirm")
+                                                .hasAnyRole("DOCTOR", "ADMIN")
 
-                        // ===== CREATE APPOINTMENT (Patient + Doctor) =====
-                        .requestMatchers(HttpMethod.POST, "/appointments/**")
-                        .hasAnyRole("PATIENT", "DOCTOR")
+                                                // ===== COMPLETE APPOINTMENT (Doctor/Admin) =====
+                                                .requestMatchers(HttpMethod.PUT, "/appointments/*/complete")
+                                                .hasAnyRole("DOCTOR", "ADMIN")
 
-                        // ===== UPDATE / DELETE =====
-                        .requestMatchers(HttpMethod.PUT, "/appointments/**")
-                        .hasAnyRole("DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/appointments/**")
-                        .hasAnyRole("DOCTOR", "ADMIN")
+                                                // ===== CREATE APPOINTMENT (Patient + Doctor) =====
+                                                .requestMatchers(HttpMethod.POST, "/appointments/**")
+                                                .hasAnyRole("PATIENT", "DOCTOR")
 
-                        // ===== GET APPOINTMENTS (private) =====
-                        .requestMatchers(HttpMethod.GET, "/appointments/**")
-                        .hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+                                                // ===== UPDATE / DELETE =====
+                                                .requestMatchers(HttpMethod.PUT, "/appointments/**")
+                                                .hasAnyRole("DOCTOR", "ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE, "/appointments/**")
+                                                .hasAnyRole("DOCTOR", "ADMIN")
 
-                        .anyRequest().authenticated()
-                )
+                                                // ===== GET APPOINTMENTS (private) =====
+                                                .requestMatchers(HttpMethod.GET, "/appointments/**")
+                                                .hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                                .anyRequest().authenticated())
 
-        return http.build();
-    }
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+        }
 }

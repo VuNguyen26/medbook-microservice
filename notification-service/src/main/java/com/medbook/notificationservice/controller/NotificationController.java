@@ -1,8 +1,11 @@
 package com.medbook.notificationservice.controller;
 
+import com.medbook.notificationservice.dto.BookingSuccessEmailRequest;
 import com.medbook.notificationservice.model.Notification;
 import com.medbook.notificationservice.model.NotificationType;
+import com.medbook.notificationservice.service.EmailService;
 import com.medbook.notificationservice.service.NotificationService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,9 +16,11 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService service;
+    private final EmailService emailService;
 
-    public NotificationController(NotificationService service) {
+    public NotificationController(NotificationService service, EmailService emailService) {
         this.service = service;
+        this.emailService = emailService;
     }
 
     // API public test (không cần JWT)
@@ -71,5 +76,18 @@ public class NotificationController {
             @RequestParam NotificationType type
     ) {
         return service.sendNotification(userId, title, message, type);
+    }
+
+    // ======================================================
+    // GỬI EMAIL XÁC NHẬN ĐẶT LỊCH THÀNH CÔNG
+    // ======================================================
+    @PostMapping("/email/booking-success")
+    public ResponseEntity<?> sendBookingSuccessEmail(@RequestBody BookingSuccessEmailRequest request) {
+        try {
+            emailService.sendBookingSuccessEmail(request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Không gửi được email: " + e.getMessage());
+        }
     }
 }

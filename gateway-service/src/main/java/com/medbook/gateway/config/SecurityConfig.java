@@ -41,11 +41,10 @@ public class SecurityConfig {
             ServerHttpSecurity http,
             WebClient.Builder webClientBuilder,
             AuthenticationFilter authenticationFilter,
-            CorsConfigurationSource corsConfigurationSource
-    ) {
+            CorsConfigurationSource corsConfigurationSource) {
 
         String frontendRedirect = "http://localhost:5173/login/success";
-        String frontendFailure  = "http://localhost:5173/login?error=true";
+        String frontendFailure = "http://localhost:5173/login?error=true";
 
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
@@ -53,8 +52,7 @@ public class SecurityConfig {
 
                 // Cho phép OPTIONS (preflight)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                )
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll())
 
                 // JWT filter
                 .addFilterAt(authenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
@@ -74,8 +72,12 @@ public class SecurityConfig {
 
                                 // Cho Doctor xem reviews
                                 "/api/appointments/doctor/*/reviews",
-                                "/api/payments/fake"
-                        ).permitAll()
+
+                                // Báo cáo PDF (FE đã chặn role ADMIN)
+                                "/api/appointments/reports/**",
+
+                                "/api/payments/fake")
+                        .permitAll()
 
                         // ===== PATIENT ONLY =====
                         .pathMatchers(HttpMethod.POST, "/api/appointments").hasAuthority("PATIENT")
@@ -86,8 +88,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.PUT, "/api/appointments/*/cancel-unpaid").authenticated()
 
                         // Các request còn lại chỉ cần đăng nhập
-                        .anyExchange().authenticated()
-                )
+                        .anyExchange().authenticated())
 
                 // OAuth2 login
                 .oauth2Login(oauth -> oauth
@@ -95,7 +96,7 @@ public class SecurityConfig {
 
                             OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
                             String email = oauthUser.getAttribute("email");
-                            String name  = oauthUser.getAttribute("name");
+                            String name = oauthUser.getAttribute("name");
 
                             return webClientBuilder.build()
                                     .post()
@@ -105,10 +106,10 @@ public class SecurityConfig {
                                     .bodyToMono(Map.class)
                                     .flatMap(data -> {
 
-                                        String token    = (String)  data.get("token");
-                                        Integer userId  = (Integer) data.get("id");
-                                        String role     = (String)  data.get("role");
-                                        String userName = (String)  data.get("name");
+                                        String token = (String) data.get("token");
+                                        Integer userId = (Integer) data.get("id");
+                                        String role = (String) data.get("role");
+                                        String userName = (String) data.get("name");
 
                                         String redirectUrl = frontendRedirect
                                                 + "?token=" + token
@@ -128,8 +129,7 @@ public class SecurityConfig {
                                         response.getHeaders().setLocation(URI.create(frontendFailure));
                                         return response.setComplete();
                                     });
-                        })
-                )
+                        }))
 
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((exchange, e) -> {
@@ -145,8 +145,7 @@ public class SecurityConfig {
                             response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
                             byte[] bytes = "{\"message\":\"Access Denied\"}".getBytes(StandardCharsets.UTF_8);
                             return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
-                        })
-                )
+                        }))
 
                 .build();
     }

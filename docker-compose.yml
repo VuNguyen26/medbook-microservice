@@ -16,7 +16,8 @@ services:
       - medbook-network
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -80,7 +81,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -112,7 +114,7 @@ services:
       - medbook-network
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -143,7 +145,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -205,7 +208,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -267,7 +271,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -298,7 +303,7 @@ services:
       - medbook-network
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -329,7 +334,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -360,7 +366,7 @@ services:
       - medbook-network
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -388,10 +394,13 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=123456
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - MAIL_USERNAME=pcbao159@gmail.com
+      - MAIL_PASSWORD=hvgkifclcviqrkvv
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -422,7 +431,7 @@ services:
       - medbook-network
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1" ]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p123456 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -453,7 +462,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8087/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -515,7 +525,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -559,7 +570,8 @@ services:
     networks:
       - medbook-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       interval: 20s
       timeout: 10s
       retries: 10
@@ -584,7 +596,6 @@ services:
         condition: service_started
 
     environment:
-
       # ============================
       # Eureka
       # ============================
@@ -604,18 +615,18 @@ services:
       SPRING_AI_OPENAI_BASE_URL: https://openrouter.ai/api
 
       # ⚠ JSON PHẢI ĐƯỢC ESCAPE ĐÚNG — KHÔNG DÙNG >
-      SPRING_AI_OPENAI_HTTP_HEADERS: "{\"HTTP-Referer\": \"http://localhost\", \"X-Title\": \"MedBook AI Service\"}"
+      SPRING_AI_OPENAI_HTTP_HEADERS: '{"HTTP-Referer": "http://localhost", "X-Title": "MedBook AI Service"}'
 
     networks:
       - medbook-network
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8089/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 45s
-
 
   # =========================
   # QDRANT VECTOR DATABASE
@@ -624,15 +635,14 @@ services:
     image: qdrant/qdrant:v1.12.4
     container_name: qdrant
     ports:
-      - "6333:6333"             # HTTP API
-      - "6334:6334"             # gRPC API (BẮT BUỘC phải expose)
+      - "6333:6333" # HTTP API
+      - "6334:6334" # gRPC API (BẮT BUỘC phải expose)
     volumes:
       - ./qdrant_data:/qdrant/storage
       - ./qdrant_config/config.yaml:/qdrant/config/config.yaml
     restart: always
     networks:
       - medbook-network
-
 
 # =========================
 # NETWORKS & VOLUMES
@@ -649,4 +659,3 @@ volumes:
   medicalrecord_data:
   notification_data:
   patient_data:
-

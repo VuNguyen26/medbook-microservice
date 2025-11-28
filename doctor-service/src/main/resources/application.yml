@@ -45,6 +45,11 @@ spring:
   messages:
     encoding: UTF-8
 
+  web:
+    resources:
+      static-locations: classpath:/static/, file:./images/
+      static-path-pattern: /images/**
+
 jwt:
   secret: "XyP7rJd9TzQ2sKc5UeV1nRj4LwM8aHf3GzB6pLq9DkN2xYv8"
   expiration: 86400000

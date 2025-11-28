@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Đặt lịch khám thành công - MedBook</title>
+</head>
+<body style="font-family: Arial, sans-serif; background:#f5f5f5; padding:24px;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;padding:24px;">
+  <!-- Tiêu đề -->
+  <h2 style="color:#2563eb; margin-bottom:16px;">
+    Thông báo khách hàng "<span th:text="${patientName}">Tên khách hàng</span>" đã đặt lịch thành công
+  </h2>
+
+  <!-- Nội dung chính -->
+  <p>Chào <strong th:text="${patientName}">Tên khách hàng</strong>,</p>
+
+  <p>Bạn đã đặt lịch khám thành công với thông tin như sau:</p>
+
+  <ul>
+    <li><strong>Tên khách hàng:</strong> <span th:text="${patientName}">Tên khách hàng</span></li>
+    <li><strong>Bác sĩ:</strong> <span th:text="${doctorName}">Tên bác sĩ</span></li>
+    <li>
+      <strong>Lịch hẹn:</strong>
+      <span th:text="${appointmentDate}">2025-10-08</span>
+      lúc
+      <span th:text="${appointmentTime}">09:00</span>
+    </li>
+  </ul>
+
+  <p>Vui lòng đến đúng giờ hẹn và mang theo các giấy tờ cần thiết (nếu có).</p>
+
+  <p>Trân trọng,<br/>Đội ngũ MedBook</p>
+</div>
+</body>
+</html>
+
+

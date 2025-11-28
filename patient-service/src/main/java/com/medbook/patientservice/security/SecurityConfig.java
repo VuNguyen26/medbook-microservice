@@ -16,36 +16,36 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // ❌ Tắt CSRF (vì microservice dùng JWT, không dùng session)
-                .csrf(csrf -> csrf.disable())
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                // ❌ Tắt CSRF (vì microservice dùng JWT, không dùng session)
+                                .csrf(csrf -> csrf.disable())
 
-                // ⚙️ Cấu hình stateless session (chỉ JWT)
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                // ⚙️ Cấu hình stateless session (chỉ JWT)
+                                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 🔐 Cấu hình quyền truy cập
-                .authorizeHttpRequests(auth -> auth
-                        // ✅ Cho phép các endpoint public và swagger
-                        .requestMatchers(
-                                "/patients/public/**",
-                                "/api/patients/public/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/error"
-                        ).permitAll()
+                                // 🔐 Cấu hình quyền truy cập
+                                .authorizeHttpRequests(auth -> auth
+                                                // ✅ Cho phép các endpoint public và swagger
+                                                .requestMatchers(
+                                                                "/actuator/**",
+                                                                "/patients/public/**",
+                                                                "/api/patients/public/**",
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-ui/**",
+                                                                "/swagger-ui.html",
+                                                                "/error")
+                                                .permitAll()
 
-                        // ✅ Cho phép tất cả request có JWT (bất kỳ role)
-                        .anyRequest().authenticated()
-                )
+                                                // ✅ Cho phép tất cả request có JWT (bất kỳ role)
+                                                .anyRequest().authenticated())
 
-                // 🧱 Gắn filter JWT trước UsernamePasswordAuthenticationFilter
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                                // 🧱 Gắn filter JWT trước UsernamePasswordAuthenticationFilter
+                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 }
