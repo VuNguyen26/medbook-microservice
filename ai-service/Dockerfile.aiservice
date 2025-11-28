@@ -4,11 +4,11 @@
 FROM maven:3.9.8-eclipse-temurin-21 AS builder
 
 WORKDIR /build
-
 COPY ai-service/pom.xml .
 COPY ai-service/src ./src
 
 RUN mvn -B clean package -DskipTests
+
 
 # ============================
 # STAGE 2 — RUNTIME
@@ -17,16 +17,34 @@ FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
-ENV TZ=Asia/Ho_Chi_Minh
+# ========= FIX for Transformers =========
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip git curl \
+    libstdc++6 libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cache cho HuggingFace
+ENV HF_HOME=/app/hf-cache
+RUN mkdir -p /app/hf-cache
 
 # Copy JAR
 COPY --from=builder /build/target/*.jar app.jar
+
+ENV TZ=Asia/Ho_Chi_Minh
 
 ENV JAVA_OPTS="-XX:+UseContainerSupport \
                -XX:MaxRAMPercentage=70.0 \
                -XX:+UseG1GC \
                -XX:+UseStringDeduplication \
                -XX:+HeapDumpOnOutOfMemoryError"
+
+
+# Bắt buộc cho HuggingFace (không tải model nhiều lần)
+ENV TRANSFORMERS_CACHE=/app/hf-cache
+ENV SENTENCE_TRANSFORMERS_HOME=/app/hf-cache
+
+# Bật native BLAS (tăng tốc CPU)
+ENV OMP_NUM_THREADS=4
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 

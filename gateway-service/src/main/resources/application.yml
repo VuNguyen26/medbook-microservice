@@ -61,6 +61,22 @@ spring:
 
   cloud:
     gateway:
+
+      # =============================
+      # GLOBAL CORS CONFIG (FIX)
+      # =============================
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
       default-filters:
         - PreserveHostHeader
         - RemoveRequestHeader=Cookie
@@ -69,7 +85,7 @@ spring:
       routes:
 
         # ======================================================
-        # 🔥 QR CHECK-IN ROUTE (PUBLIC) — MUST BE FIRST!
+        # QR CHECK-IN ROUTE (PUBLIC)
         # ======================================================
         - id: appointment-qr
           uri: lb://appointment-service
@@ -109,7 +125,7 @@ spring:
             - StripPrefix=1
 
         # ======================================================
-        # 🔥 Appointment Service (all except QR)
+        # Appointment Service (all except QR)
         # ======================================================
         - id: appointment-service
           uri: lb://appointment-service
@@ -168,23 +184,19 @@ spring:
           filters:
             - StripPrefix=1
 
-
         # ======================================================
-        # 🤖 AI SERVICE (NEW)
+        # AI SERVICE (NEW)
         # ======================================================
         - id: ai-service
           uri: lb://ai-service
           predicates:
             - Path=/api/ai/**
-          filters:
-            - StripPrefix=0
-
+          filters: [ ]
 
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-
 
 # ===================== EUREKA =====================
 eureka:
