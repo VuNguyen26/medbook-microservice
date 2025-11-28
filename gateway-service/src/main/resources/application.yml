@@ -61,6 +61,21 @@ spring:
 
   cloud:
     gateway:
+      # =============================
+      # GLOBAL CORS CONFIG (FIX)
+      # =============================
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
       default-filters:
         - PreserveHostHeader
         - RemoveRequestHeader=Cookie
@@ -78,7 +93,7 @@ spring:
             - StripPrefix=0
 
         # ======================================================
-        # 🔥 QR CHECK-IN ROUTE (PUBLIC) — MUST BE FIRST!
+        # QR CHECK-IN ROUTE (PUBLIC)
         # ======================================================
         - id: appointment-qr
           uri: lb://appointment-service
@@ -118,7 +133,7 @@ spring:
             - StripPrefix=1
 
         # ======================================================
-        # 🔥 Appointment Service (all except QR)
+        # Appointment Service (all except QR)
         # ======================================================
         - id: appointment-service
           uri: lb://appointment-service
@@ -178,7 +193,7 @@ spring:
             - StripPrefix=1
 
         # ======================================================
-        # 🤖 AI SERVICE (NEW)
+        # AI SERVICE (NEW)
         # ======================================================
         - id: ai-service
           uri: lb://ai-service

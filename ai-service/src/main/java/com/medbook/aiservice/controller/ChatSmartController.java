@@ -20,12 +20,17 @@ public class ChatSmartController {
     public ResponseEntity<?> chatSmart(@RequestBody Map<String, String> payload) {
 
         String question = payload.get("question");
+
         if (question == null || question.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Missing field: question"));
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Missing field: question")
+            );
         }
 
         log.info("🤖 [ChatSmart] User question = {}", question);
 
-        return ResponseEntity.ok(chatSmartService.process(question));
+        Map<String, Object> result = chatSmartService.process(question);
+
+        return ResponseEntity.ok(result);
     }
 }

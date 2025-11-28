@@ -15,32 +15,25 @@ spring:
       base-url: https://openrouter.ai/api
       api-key: ${SPRING_AI_OPENAI_API_KEY}
 
-      # 🔥 BẮT BUỘC KHI DÙNG OPENROUTER (yêu cầu của OpenRouter)
       http:
         headers:
           HTTP-Referer: "http://localhost"
           X-Title: "MedBook AI Service"
 
-      # 🔥 MODEL CHAT HỢP LỆ CỦA OPENROUTER
       chat:
         options:
           model: "meta-llama/llama-3.1-8b-instruct"
 
-      # 🔥 MODEL EMBEDDING HỢP LỆ (OpenRouter hỗ trợ)
       embedding:
         options:
-          model: "mixedbread-ai/mxbai-embed-large"
-          # Các model embedding khác của OpenRouter:
-          # model: "mistral/mistral-embed"
-          # model: "BAAI/bge-small-en-v1.5"
+          model: "text-embedding-3-small"
 
     vectorstore:
       qdrant:
-        host: ${QDRANT_HOST:qdrant}
-        port: ${QDRANT_PORT:6334}
+        host: qdrant            # <<< 🔥 CHỈNH CHỖ NÀY
+        port: 6334
         grpc-enabled: true
-        collection-name: ${QDRANT_COLLECTION:medbook-ai}
-        distance: COSINE
+        collection-name: medbook-ai
 
 management:
   endpoints:
@@ -57,7 +50,6 @@ eureka:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://discovery-service:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
-
   instance:
     prefer-ip-address: true
 
